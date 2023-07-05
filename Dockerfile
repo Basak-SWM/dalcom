@@ -1,7 +1,7 @@
 FROM gradle:latest
 
 RUN mkdir ./build
-RUN mkdir ./buikd/libs
+RUN mkdir ./build/libs
 RUN gradle clean build --no-daemon
 
 FROM openjdk:17-jdk
