@@ -22,15 +22,15 @@ jobs:
         
       - name: Generate Environment Variables Files For Production
         run: |
-          echo "VARIABLE=$VARIABLE" >> ./dir/.env
+          echo "VARIABLE=$VARIABLE" >> ./.env
         env:
           VARIABLE: ${{ secrets.VARIABLE }}
       
       - name: Proxy Build and Push
         uses: docker/build-push-action@v4.1.1
         with:
-          context: ./dir
-          file: ./dir/Dockerfile
+          context: .
+          file: ./Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev
