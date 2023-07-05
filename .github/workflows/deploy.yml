@@ -26,6 +26,9 @@ jobs:
         env:
           VARIABLE: ${{ secrets.VARIABLE }}
       
+      - name: Build with Gradle
+        run: ./gradlew bootJar
+      
       - name: Proxy Build and Push
         uses: docker/build-push-action@v4.1.1
         with:
