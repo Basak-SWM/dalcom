@@ -1,7 +1,6 @@
 package com.basak.dalcom.domain.accounts;
 
 import javax.persistence.AttributeConverter;
-import java.util.Optional;
 
 public class AccountRoleConverter implements AttributeConverter<AccountRole, Integer> {
     @Override
