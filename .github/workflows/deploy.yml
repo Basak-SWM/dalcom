@@ -26,6 +26,11 @@ jobs:
         env:
           VARIABLE: ${{ secrets.VARIABLE }}
       
+      - name: Setup Java JDK
+        uses: actions/setup-java@v1.4.4
+        with:
+          java-version: '17'
+      
       - name: Build with Gradle
         run: ./gradlew bootJar
       
