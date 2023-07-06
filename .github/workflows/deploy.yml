@@ -59,7 +59,4 @@ jobs:
       - name: Docker run
         run: |
           docker stop dalcom-dev && docker rm dalcom-dev && rmi ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
-          
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
-          
-          docker run -d -p 8080:8080 --name dalcom-dev ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
+          docker-compose -f up -d
