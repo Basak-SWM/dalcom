@@ -58,5 +58,5 @@ jobs:
       
       - name: Docker run
         run: |
-          docker stop dalcom-dev && docker rm dalcom-dev && rmi ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
+          docker stop dalcom-dev && docker rm dalcom-dev && docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
           docker-compose -f up -d
