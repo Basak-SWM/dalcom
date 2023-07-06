@@ -22,7 +22,7 @@ jobs:
         
       - name: Generate Environment Variables Files For Production
         run: |
-          echo ${{ secrets.VARIABLE }} >> ./.env
+          echo ${{ secrets.APPLICATION_SETTING }} >> ./src/main/resources/application.yml
         env:
           VARIABLE: ${{ secrets.VARIABLE }}
       
