@@ -22,7 +22,7 @@ jobs:
         
       - name: Generate Environment Variables Files For Production
         run: |
-          echo "VARIABLE=$VARIABLE" >> ./.env
+          echo ${{ secrets.VARIABLE }} >> ./.env
         env:
           VARIABLE: ${{ secrets.VARIABLE }}
       
