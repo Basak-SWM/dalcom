@@ -19,12 +19,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-        
-      - name: Generate Environment Variables Files For Production
-        run: |
-          echo "VARIABLE=$VARIABLE" >> ./.env
-        env:
-          VARIABLE: ${{ secrets.VARIABLE }}
       
       - name: Setup Java JDK
         uses: actions/setup-java@v1.4.4
@@ -56,7 +50,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
       
+      # 돼라
       - name: Docker run
+        env:
+          SERVER_ENV: $SERVER_ENV
+          MYSQL_URL: ${{ secrets.MYSQL_URL }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: |
-          docker stop dalcom-dev && docker rm dalcom-dev && rmi ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
-          docker-compose -f up -d
+          docker stop dalcom-dev && docker rm dalcom-dev && docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
+          docker-compose up -d
