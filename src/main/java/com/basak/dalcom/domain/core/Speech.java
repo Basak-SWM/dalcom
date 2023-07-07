@@ -1,13 +1,13 @@
 package com.basak.dalcom.domain.core;
 
-import com.basak.dalcom.domain.common.BaseDatetimeAudit;
+import com.basak.dalcom.domain.common.BaseEntity;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
 @Table(name = "speech")
-public class Speech extends BaseDatetimeAudit {
+public class Speech extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
