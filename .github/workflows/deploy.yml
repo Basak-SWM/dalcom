@@ -83,5 +83,5 @@ jobs:
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
             docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker stop ${{ env.ECR_REPOSITORY }}-deploy
+            docker rm -f ${{ env.ECR_REPOSITORY }}-deploy || true
             docker-compose up -d
