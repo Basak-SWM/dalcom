@@ -34,6 +34,14 @@ jobs:
         with:
           gradle-version: 8.1.1
 
+      - name: Gradle cache
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
       - name: Build with Gradle
         run: gradle build
 
@@ -81,6 +89,7 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           script_stop: true
           script: |
+            cd ~/deploy
             touch ./.env
             echo "MYSQL_URL=${{ secrets.MYSQL_URL }}" >> ./.env            
             echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> ./.env
