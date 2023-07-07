@@ -84,4 +84,5 @@ jobs:
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
             docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
             docker rm -f ${{ env.ECR_REPOSITORY }}-deploy || true
+            cd /home/ubuntu/deploy
             docker-compose up -d
