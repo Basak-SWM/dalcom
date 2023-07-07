@@ -74,6 +74,7 @@ jobs:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          COMPOSE: "/home/ubuntu/deploy/docker-compose.yml"
         with:
           host: ${{ secrets.AWS_HOST_DEPLOY }}
           username: ${{ secrets.AWS_SSH_USERNAME }}
@@ -82,7 +83,6 @@ jobs:
           script: |
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
+            docker-compose -f $COMPOSE down --rmi all
+            docker-compose -f $COMPOSE up -d
             docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker rm -f ${{ env.ECR_REPOSITORY }}-deploy || true
-            cd /home/ubuntu/deploy
-            docker-compose up -d
