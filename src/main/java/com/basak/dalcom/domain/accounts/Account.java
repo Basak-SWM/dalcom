@@ -1,14 +1,23 @@
 package com.basak.dalcom.domain.accounts;
 
-import com.basak.dalcom.domain.common.BaseDatetimeAudit;
+import com.basak.dalcom.domain.common.BaseEntity;
 import com.basak.dalcom.domain.profiles.UserProfile;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
 
+
+@Getter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "account")
-public class Account extends BaseDatetimeAudit {
+public class Account extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
