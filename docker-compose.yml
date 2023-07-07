@@ -22,7 +22,7 @@ services:
       - "--collation-server=utf8mb4_unicode_ci"
 
   application:
-    container_name: dalcom-app
+    container_name: tokpeanut-deploy
     restart: no
     build:
       context: .

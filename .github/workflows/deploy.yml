@@ -21,7 +21,6 @@ jobs:
         uses: actions/setup-java@v1.4.4
         with:
           java-version: '17'
-          distribution: 'temurin'
 
       - name: Create application.yml
         run: |
@@ -56,11 +55,11 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           DATE=$(date "+%y.%m.%d")
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:deploy-$DATE ./
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:deploy-latest ./
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$DATE ./
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./
 
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:deploy-$DATE
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:deploy-latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DATE
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
   deploy:
     needs: build
@@ -83,7 +82,6 @@ jobs:
           script: |
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
-            docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:deploy
+            docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
             docker stop ${{ env.ECR_REPOSITORY }}-deploy
             docker-compose up -d
-
