@@ -1,6 +1,7 @@
 db
 mysql
 .env
+/src/main/resources/application-staging.yml
 
 HELP.md
 .gradle

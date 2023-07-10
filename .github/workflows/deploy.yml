@@ -77,6 +77,4 @@ jobs:
           script: |
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
-            docker-compose -f ${{ env.COMPOSE }} down --rmi all
-            docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
             docker run --rm -d -p 8080:8080 --name dalcom-staging ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
