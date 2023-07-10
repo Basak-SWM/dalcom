@@ -2,7 +2,7 @@ name: CICD
 
 on:
   push:
-    branches: [ deploy ]
+    branches: [ staging ]
 
 env:
   AWS_REGION: ap-northeast-2
@@ -25,8 +25,8 @@ jobs:
       - name: Create application.yml
         run: |
           cd ./src/main/resources
-          touch ./application.yml
-          echo "${{ secrets.APPLICATION_SETTING }}" > ./application.yml
+          touch ./application-staging.yml
+          echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
         shell: bash
 
       - name: Gradle Setup
@@ -49,8 +49,8 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push server-deploy image to Amazon ECR
-        if: contains(github.ref, 'deploy')
-        id: build-image-deploy
+        if: contains(github.ref, 'staging')
+        id: build-image-staging
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
@@ -66,29 +66,18 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy on deploy server
-        if: contains(github.ref, 'deploy')
+      - name: Deploy on staging server
+        if: contains(github.ref, 'staging')
         uses: appleboy/ssh-action@v0.1.10
-        env:
-          MYSQL_URL: ${{ secrets.MYSQL_URL }}
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          COMPOSE: /home/ubuntu/deploy/docker-compose.yml
         with:
           host: ${{ secrets.AWS_HOST_DEPLOY }}
           username: ${{ secrets.AWS_SSH_USERNAME }}
           key: ${{ secrets.AWS_SSH_KEY }}
           script_stop: true
           script: |
-            cd ~/deploy
-            touch ./.env
-            echo "MYSQL_URL=${{ secrets.MYSQL_URL }}" >> ./.env            
-            echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> ./.env
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> ./.env
-            
+            cd ~/staging
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
             docker-compose -f ${{ env.COMPOSE }} down --rmi all
             docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker-compose -f ${{ env.COMPOSE }} up -d
+            docker run --rm -d -p 8080:8080 --name dalcom-staging ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
