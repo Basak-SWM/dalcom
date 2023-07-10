@@ -27,21 +27,6 @@ jobs:
           cd ./src/main/resources
           touch ./application-staging.yml
           echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
-          
-          echo "src/main/resources"
-          ls -al
-          
-          cd ..
-          echo "src/main"
-          ls -al
-          
-          cd ..
-          echo "src/main"
-          ls -al
-          
-          cd ..
-          echo "src"
-          ls -al
         shell: bash
 
       - name: Gradle Setup

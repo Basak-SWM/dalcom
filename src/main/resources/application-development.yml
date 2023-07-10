@@ -7,3 +7,6 @@ spring:
     url: jdbc:mysql://localhost:3306/dalcom
     username: dalcom_admin
     password: thisispassword123!
+  jpa:
+    hibernate:
+      ddl-auto: create
