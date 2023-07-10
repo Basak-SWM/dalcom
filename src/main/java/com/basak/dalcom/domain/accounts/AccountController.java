@@ -10,6 +10,7 @@ import javax.validation.Valid;
 @Validated
 @RequestMapping("/accounts")
 public class AccountController {
+    @PostMapping
     public int AccountSignup(@Valid @RequestBody AccountSignupDto request) {
         return 0;
     }
