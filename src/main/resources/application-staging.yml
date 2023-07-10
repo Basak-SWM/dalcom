@@ -1,15 +1,5 @@
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${MYSQL_URL}
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-    show-sql: true
-    hibernate:
-      ddl-auto: create
-    properties:
-      hibernate.format_sql: true
-      dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    url: rds-dalcom-staging.cysv6vlr7hvc.ap-northeast-2.rds.amazonaws.com
+    username: admin
+    password: somabasak0422!
