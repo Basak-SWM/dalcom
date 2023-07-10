@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
-
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
@@ -20,12 +19,4 @@ public abstract class BaseEntity implements Serializable {
     @LastModifiedDate
     @Column(name = "last_modified_date")
     private LocalDateTime lastModifiedDate;
-
-    @CreatedBy
-    @Column(name = "created_by", nullable = false, updatable = false)
-    private Long createdBy;
-
-    @LastModifiedBy
-    @Column(name = "last_modified_by")
-    private Long lastModifiedBy;
 }
