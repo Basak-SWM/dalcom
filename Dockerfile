@@ -4,5 +4,4 @@ FROM openjdk:17-jdk
 ARG JAR_FILE=build/libs/*.jar
 
 COPY ${JAR_FILE} app.jar
-#ENTRYPOINT ["java","-jar","/app.jar", "-Dspring.profiles.active=staging"]
-ENTRYPOINT ["/bin/sh", "-c", "/bin/bash"]
+ENTRYPOINT ["java", "-Dspring.profiles.active=staging", "-jar", "/app.jar"]
