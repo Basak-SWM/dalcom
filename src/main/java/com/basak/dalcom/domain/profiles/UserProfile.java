@@ -1,7 +1,7 @@
 package com.basak.dalcom.domain.profiles;
 
 import com.basak.dalcom.domain.accounts.Account;
-import com.basak.dalcom.domain.common.BaseDatetimeAudit;
+import com.basak.dalcom.domain.common.BaseEntity;
 import com.basak.dalcom.domain.core.Presentation;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "user_profile")
-public class UserProfile extends BaseDatetimeAudit {
+public class UserProfile extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
