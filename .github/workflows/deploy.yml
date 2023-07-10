@@ -27,12 +27,23 @@ jobs:
           cd ./src/main/resources
           touch ./application-staging.yml
           echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
+          ls -al
         shell: bash
 
       - name: Gradle Setup
         uses: gradle/gradle-build-action@v2.5.1
         with:
           gradle-version: 8.1.1
+
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Build with Gradle
         run: gradle build
