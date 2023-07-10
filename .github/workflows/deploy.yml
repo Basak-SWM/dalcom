@@ -27,7 +27,20 @@ jobs:
           cd ./src/main/resources
           touch ./application-staging.yml
           echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
-          cd ../..
+          
+          echo "src/main/resources"
+          ls -al
+          
+          cd ..
+          echo "src/main"
+          ls -al
+          
+          cd ..
+          echo "src/main"
+          ls -al
+          
+          cd ..
+          echo "src"
           ls -al
         shell: bash
 
@@ -90,5 +103,5 @@ jobs:
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
             docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker rm -f --rm dalcom-staging 2>/dev/null || true
+            docker container rm dalcom-staging 2>/dev/null || true
             docker run -d -p 8080:8080 --name dalcom-staging ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest

@@ -1,5 +1,0 @@
-spring:
-  datasource:
-    url: rds-dalcom-staging.cysv6vlr7hvc.ap-northeast-2.rds.amazonaws.com
-    username: admin
-    password: somabasak0422!
