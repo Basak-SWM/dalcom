@@ -1,7 +1,7 @@
 package com.basak.dalcom.domain.core;
 
 import com.basak.dalcom.domain.common.BaseEntity;
-import com.basak.dalcom.domain.profiles.UserProfile;
+import com.basak.dalcom.domain.profiles.data.UserProfile;
 
 import javax.persistence.*;
 import java.util.List;
