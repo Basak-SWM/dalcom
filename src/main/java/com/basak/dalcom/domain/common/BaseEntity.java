@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @MappedSuperclass
-public abstract class BaseEntity implements Serializable {
+public abstract class BaseEntity {
     @CreatedDate
     @Column(name = "created_date", nullable = false, updatable = false)
     private LocalDateTime createdDate;
