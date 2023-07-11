@@ -34,10 +34,9 @@ public class AccountSignupDto {
     @Length(min = 4, max = 16, message = "비밀번호는 4자 이상, 16자 이하로 입력해주세요.")
     private String password;
 
-    @NotEmpty(message = "역할은 필수 입력 값입니다.")
+    // Enum Validation을 위한 Custom Annotation 지정.
     @ValueOfEnum(enumClass = AccountRole.class, message = "역할은 USER, COACH 중 하나여야 합니다.")
     private AccountRole role;
-
 
     public Account toEntity() {
         return Account.builder()

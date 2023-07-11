@@ -2,15 +2,15 @@ package com.basak.dalcom.domain.accounts;
 
 import javax.persistence.AttributeConverter;
 
-public class AccountRoleConverter implements AttributeConverter<AccountRole, Integer> {
+public class AccountRoleConverter implements AttributeConverter<AccountRole, String> {
     @Override
-    public Integer convertToDatabaseColumn(AccountRole attribute) {
+    public String convertToDatabaseColumn(AccountRole attribute) {
         return AccountRole.valueOf(attribute)
                 .orElseThrow(() -> new IllegalStateException("Unknown AccountRole"));
     }
 
     @Override
-    public AccountRole convertToEntityAttribute(Integer dbData) {
+    public AccountRole convertToEntityAttribute(String dbData) {
         if (dbData == null)
             return null;
 
