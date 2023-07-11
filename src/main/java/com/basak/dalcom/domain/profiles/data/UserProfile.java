@@ -2,7 +2,7 @@ package com.basak.dalcom.domain.profiles.data;
 
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.common.BaseEntity;
-import com.basak.dalcom.domain.core.presentation.data.Presentation;
+import com.basak.dalcom.domain.core.Presentation;
 import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
