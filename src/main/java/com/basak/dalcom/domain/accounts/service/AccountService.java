@@ -10,7 +10,6 @@ import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedEmailExcept
 import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedPhoneNumberException;
 import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
 import com.basak.dalcom.domain.profiles.UserProfileService;
-import com.basak.dalcom.domain.profiles.data.UserProfile;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,9 +50,8 @@ public class AccountService {
         accountRepository.save(account);
 
         // 생성된 account userProfile을 생성하여 연결
-        UserProfile userProfile = userProfileService
+        userProfileService
             .createUserProfile(account, requestDto.getVoiceUsageAgreement());
-        account.connectUserProfile(userProfile);
 
         return account;
     }
