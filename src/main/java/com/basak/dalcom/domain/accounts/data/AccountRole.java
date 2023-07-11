@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.accounts;
+package com.basak.dalcom.domain.accounts.data;
 
 import java.util.Arrays;
 import java.util.Optional;

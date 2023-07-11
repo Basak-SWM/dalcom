@@ -1,23 +1,19 @@
-package com.basak.dalcom.domain.accounts.dto;
+package com.basak.dalcom.domain.accounts.controller.request_dto;
 
-import com.basak.dalcom.domain.accounts.Account;
-import com.basak.dalcom.domain.accounts.AccountRole;
-import com.basak.dalcom.domain.common.ValueOfEnum;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Getter
-public class AccountSignupDto {
+public class UserSignupDto {
 
     @NotBlank(message = "닉네임은 필수 입력 값입니다.")
     private String nickname;
@@ -34,17 +30,5 @@ public class AccountSignupDto {
     @Length(min = 4, max = 16, message = "비밀번호는 4자 이상, 16자 이하로 입력해주세요.")
     private String password;
 
-    // Enum Validation을 위한 Custom Annotation 지정.
-    @ValueOfEnum(enumClass = AccountRole.class, message = "역할은 USER, COACH 중 하나여야 합니다.")
-    private AccountRole role;
-
-    public Account toEntity() {
-        return Account.builder()
-                .nickname(nickname)
-                .email(email)
-                .phoneNumber(phoneNumber)
-                .password(password)
-                .role(role)
-                .build();
-    }
+    private Boolean voiceUsageAgreement;
 }
