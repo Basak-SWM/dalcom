@@ -10,3 +10,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
