@@ -37,10 +37,8 @@ public class AccountController {
     )
     @ApiResponse(responseCode = "201", description = "회원 가입 성공",
         content = @Content(schema = @Schema(implementation = SignupSuccessDto.class)))
-    @ApiResponse(responseCode = "400", description = "Validation 실패",
-        content = @Content(schema = @Schema(implementation = Void.class)))
-    @ApiResponse(responseCode = "409", description = "이미 사용중인 email이나 phoneNumber인 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+    @ApiResponse(responseCode = "400", description = "Validation 실패", content = @Content)
+    @ApiResponse(responseCode = "409", description = "이미 사용중인 email이나 phoneNumber인 경우", content = @Content)
     @PostMapping("/user/signup")
     public ResponseEntity<SignupSuccessDto> userSignup(@Valid @RequestBody UserSignupDto dto)
         throws FieldConflictResponseException {
