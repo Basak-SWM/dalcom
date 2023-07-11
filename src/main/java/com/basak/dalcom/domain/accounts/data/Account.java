@@ -49,8 +49,4 @@ public class Account extends BaseEntity {
 
     @Column(columnDefinition = "CHAR(64)")
     private String password;
-
-    public void connectUserProfile(UserProfile userProfile) {
-        this.userProfile = userProfile;
-    }
 }
