@@ -1,6 +1,6 @@
 package com.basak.dalcom.domain.core;
 
-import com.basak.dalcom.domain.common.BaseDatetimeAudit;
+import com.basak.dalcom.domain.common.BaseEntity;
 import com.basak.dalcom.domain.profiles.UserProfile;
 
 import javax.persistence.*;
@@ -8,7 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "presentation")
-public class Presentation extends BaseDatetimeAudit {
+public class Presentation extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

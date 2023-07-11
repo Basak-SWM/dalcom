@@ -2,7 +2,13 @@ name: CICD
 
 on:
   push:
-    branches: [deploy]
+    branches: [ staging ]
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECR_REPOSITORY: tokpeanut
+
 
 jobs:
   build:
@@ -10,53 +16,78 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.3
-      
-      - name: Docker Setup Buildx
-        uses: docker/setup-buildx-action@v2.8.0
-      
-      - name: Login to DockeHub
-        uses: docker/login-action@v2.2.0
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-        
-      - name: Generate Environment Variables Files For Production
-        run: |
-          echo "VARIABLE=$VARIABLE" >> ./.env
-        env:
-          VARIABLE: ${{ secrets.VARIABLE }}
-      
+
       - name: Setup Java JDK
         uses: actions/setup-java@v1.4.4
         with:
           java-version: '17'
-          distribution: 'temurin'
-      
-      - name: Build with Gradle
-        run: ./gradlew bootJar
-      
-      - name: Proxy Build and Push
-        uses: docker/build-push-action@v4.1.1
+
+      - name: Create application.yml
+        run: |
+          cd ./src/main/resources
+          touch ./application-staging.yml
+          echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
+        shell: bash
+
+      - name: Gradle Setup
+        uses: gradle/gradle-build-action@v2.5.1
         with:
-          context: .
-          file: ./Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev
-    
+          gradle-version: 8.1.1
+
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build with Gradle
+        run: gradle build
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push server-deploy image to Amazon ECR
+        if: contains(github.ref, 'staging')
+        id: build-image-staging
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          DATE=$(date "+%y.%m.%d")
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$DATE ./
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./
+
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DATE
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
   deploy:
     needs: build
     name: Deploy
-    runs-on: [self-hosted, label-dalcom-dev]
+    runs-on: ubuntu-latest
     steps:
-      - name: Login to ghcr
-        uses: docker/login-action@v2.2.0
+      - name: Deploy on staging server
+        if: contains(github.ref, 'staging')
+        uses: appleboy/ssh-action@v0.1.10
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
-      
-      - name: Docker run
-        run: |
-          docker stop dalcom-dev && docker rm dalcom-dev && rmi ${{ secrets.DOCKERHUB_USERNAME }}/dalcom-dev:latest
-          docker-compose -f up -d
+          host: ${{ secrets.AWS_HOST_DEPLOY }}
+          username: ${{ secrets.AWS_SSH_USERNAME }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script_stop: true
+          script: |
+            password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
+            docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
+            docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+            docker container stop dalcom-staging 2>/dev/null || true
+            docker container rm dalcom-staging 2>/dev/null || true
+            docker run -d -p 8080:8080 --name dalcom-staging ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest

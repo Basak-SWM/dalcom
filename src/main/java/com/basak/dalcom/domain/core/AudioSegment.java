@@ -1,13 +1,13 @@
 package com.basak.dalcom.domain.core;
 
-import com.basak.dalcom.domain.common.CreatedAtAudit;
+import com.basak.dalcom.domain.common.BaseEntity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "audio_segment")
-public class AudioSegment extends CreatedAtAudit {
+public class AudioSegment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,4 +21,7 @@ public class AudioSegment extends CreatedAtAudit {
 
     @Column(nullable = false)
     private LocalDateTime uploadedAt;
+
+    @Transient
+    private LocalDateTime lastModifiedDate;
 }

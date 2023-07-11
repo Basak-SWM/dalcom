@@ -1,6 +1,7 @@
 db
 mysql
 .env
+application-staging.yml
 
 HELP.md
 .gradle
@@ -22,7 +23,8 @@ bin/
 !**/src/test/**/bin/
 
 ### IntelliJ IDEA ###
-.idea
+.idea/*
+!.idea/codeStyles/
 *.iws
 *.iml
 *.ipr
