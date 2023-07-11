@@ -9,7 +9,8 @@ import com.basak.dalcom.domain.accounts.data.AccountRole;
 import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedEmailException;
 import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedPhoneNumberException;
 import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
-import com.basak.dalcom.domain.profiles.UserProfileService;
+import com.basak.dalcom.domain.profiles.service.UserProfileService;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,6 +54,11 @@ public class AccountService {
         userProfileService
             .createUserProfile(account, requestDto.getVoiceUsageAgreement());
 
+        return account;
+    }
+
+    public Optional<Account> findUserAccountByUuid(String uuid) {
+        Optional<Account> account = accountRepository.findByUuidAndRole(uuid, AccountRole.USER);
         return account;
     }
 
