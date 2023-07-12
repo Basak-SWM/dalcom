@@ -8,7 +8,8 @@ import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldExceptio
 /**
  * Account를 구성하는 일부 필드에 대한 validation을 수행하는 메서드의 모음
  */
-public class AccountFieldValidator {
+@Deprecated
+public final class AccountFieldValidator {
 
     private AccountFieldValidator() {
         throw new IllegalStateException("Utility class");
