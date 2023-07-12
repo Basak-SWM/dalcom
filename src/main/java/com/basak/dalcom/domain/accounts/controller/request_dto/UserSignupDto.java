@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -36,5 +37,6 @@ public class UserSignupDto {
     private String password;
 
     @Schema(description = "음성 데이터 활용 동의 여부", type = "boolean", example = "true")
+    @NotNull(message = "음성 데이터 활용 동의 여부는 필수 입력 값입니다.")
     private Boolean voiceUsageAgreement;
 }
