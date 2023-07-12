@@ -8,6 +8,8 @@ import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -34,5 +36,14 @@ public class PresentationService {
         presentationRepository.save(presentation);
 
         return presentation;
+    }
+
+    public Slice<Presentation> getPresentationsOf(String uuid, Pageable pageable)
+        throws AccountNotFoundException {
+        Account account = accountService.findUserAccountByUuid(uuid)
+            .orElseThrow(() -> new AccountNotFoundException("uuid=" + uuid));
+        UserProfile userProfile = account.getUserProfile();
+
+        return presentationRepository.findSliceByUserProfile(userProfile, pageable);
     }
 }
