@@ -11,12 +11,18 @@ import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class S3Config {
+
     @Value("${cloud.aws.credentials.access-key}")
     public String accessKey;
     @Value("${cloud.aws.credentials.secret-key}")
     public String secretKey;
     @Value("${cloud.aws.region.static}")
     public String region;
+
+    @Value("${cloud.aws.s3.presigned-url.expiration-time-min}")
+    public Integer EXPIRATION_TIME_MIN;
+    @Value("${cloud.aws.s3.presigned-url.bucket-name}")
+    public String DEFAULT_BUCKET_NAME;
 
     @Bean
     @Primary
@@ -29,9 +35,9 @@ public class S3Config {
     @Primary
     public AmazonS3 amazonS3() {
         AmazonS3 s3Builder = AmazonS3ClientBuilder.standard()
-                .withRegion(region)
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentialsProvider()))
-                .build();
+            .withRegion(region)
+            .withCredentials(new AWSStaticCredentialsProvider(awsCredentialsProvider()))
+            .build();
         return s3Builder;
     }
 }

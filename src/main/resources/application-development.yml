@@ -16,3 +16,8 @@ cloud:
     credentials:
       access-key: ${AWS_ACCESS_KEY}
       secret-key: ${AWS_SECRET_KEY}
+
+    s3:
+      presigned-url:
+        expiration-time-min: 60
+        bucket-name: ${AWS_S3_BUCKET}
