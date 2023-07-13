@@ -1,7 +1,8 @@
 package com.basak.dalcom.domain.accounts.service.exceptions;
 
-import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
+import com.basak.dalcom.domain.common.exception.custom.DuplicatedFieldException;
 
+@Deprecated
 public class DuplicatedPhoneNumberException extends DuplicatedFieldException {
 
     public DuplicatedPhoneNumberException() {

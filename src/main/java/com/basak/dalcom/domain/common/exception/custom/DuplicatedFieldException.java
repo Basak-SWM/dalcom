@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.common.service.exceptions;
+package com.basak.dalcom.domain.common.exception.custom;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

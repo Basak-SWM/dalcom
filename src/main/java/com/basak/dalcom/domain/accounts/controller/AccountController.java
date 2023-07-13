@@ -1,12 +1,9 @@
 package com.basak.dalcom.domain.accounts.controller;
 
-import com.basak.dalcom.domain.accounts.controller.exceptions.DuplicatedAccountFieldException;
 import com.basak.dalcom.domain.accounts.controller.request_dto.UserSignupDto;
 import com.basak.dalcom.domain.accounts.controller.response_dto.SignupSuccessDto;
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
-import com.basak.dalcom.domain.common.controllers.exceptions.FieldConflictResponseException;
-import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,14 +37,8 @@ public class AccountController {
     @ApiResponse(responseCode = "400", description = "Validation 실패", content = @Content)
     @ApiResponse(responseCode = "409", description = "이미 사용중인 email이나 phoneNumber인 경우", content = @Content)
     @PostMapping("/user/signup")
-    public ResponseEntity<SignupSuccessDto> userSignup(@Valid @RequestBody UserSignupDto dto)
-        throws FieldConflictResponseException {
-        try {
-            Account createdAccount = accountService.userSignUp(dto);
-            return new ResponseEntity<>(new SignupSuccessDto(createdAccount), HttpStatus.CREATED);
-        } catch (DuplicatedFieldException exception) {
-            throw new DuplicatedAccountFieldException(exception.getFieldName());
-        }
+    public ResponseEntity<SignupSuccessDto> userSignup(@Valid @RequestBody UserSignupDto dto) {
+        Account createdAccount = accountService.userSignUp(dto);
+        return new ResponseEntity<>(new SignupSuccessDto(createdAccount), HttpStatus.CREATED);
     }
 }
-

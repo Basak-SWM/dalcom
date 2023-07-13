@@ -3,7 +3,7 @@ package com.basak.dalcom.domain.accounts.service.validators;
 import com.basak.dalcom.domain.accounts.data.AccountRepository;
 import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedEmailException;
 import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedPhoneNumberException;
-import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
+import com.basak.dalcom.domain.common.exception.custom.DuplicatedFieldException;
 
 /**
  * Account를 구성하는 일부 필드에 대한 validation을 수행하는 메서드의 모음
