@@ -5,9 +5,13 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.Headers;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.basak.dalcom.config.aws.S3Config;
 import java.net.URL;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,33 +23,49 @@ public class PresignedURLServiceImpl implements PresignedURLService {
 
     private final AmazonS3 amazonS3;
 
-    private String getPresignedURL(String bucketName, String objectKey, HttpMethod method) {
+    private URL getPresignedURL(String bucketName, String objectKey, HttpMethod method) {
         GeneratePresignedUrlRequest generatePresignedUrlRequest = getGeneratePresignedURLRequest(
             bucketName, objectKey, method);
 
-        URL url = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
-
-        return url.toString();
+        return amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
     }
 
     @Override
-    public String getPresignedURLForUpload(String bucketName, String objectKey) {
+    public URL getPresignedURLForUpload(String bucketName, String objectKey) {
         return getPresignedURL(bucketName, objectKey, HttpMethod.PUT);
     }
 
     @Override
-    public String getPresignedURLForUpload(String objectKey) {
+    public URL getPresignedURLForUpload(String objectKey) {
         return getPresignedURLForUpload(config.DEFAULT_BUCKET_NAME, objectKey);
     }
 
     @Override
-    public String getPresignedURLForDownload(String bucketName, String objectKey) {
+    public URL getPresignedURLForDownload(String bucketName, String objectKey) {
         return getPresignedURL(bucketName, objectKey, HttpMethod.GET);
     }
 
     @Override
-    public String getPresignedURLForDownload(String objectKey) {
+    public URL getPresignedURLForDownload(String objectKey) {
         return getPresignedURLForDownload(config.DEFAULT_BUCKET_NAME, objectKey);
+    }
+
+    @Override
+    public List<URL> getPresignedURLsForDownload(String bucketName, String prefix) {
+        ListObjectsV2Result result = amazonS3.listObjectsV2(bucketName, prefix);
+
+        Date expiration = getPresignedUrlExpirationAfterMin(config.EXPIRATION_TIME_MIN);
+
+        return result.getObjectSummaries().stream()
+            .filter(o -> o.getSize() > 0) // 디렉토리는 제외
+            .sorted(Comparator.comparing(S3ObjectSummary::getKey)) // key를 기준으로 정렬
+            .map(o -> amazonS3.generatePresignedUrl(bucketName, o.getKey(), expiration)) // URL 생성
+            .toList();
+    }
+
+    @Override
+    public List<URL> getPresignedURLsForDownload(String prefix) {
+        return getPresignedURLsForDownload(config.DEFAULT_BUCKET_NAME, prefix);
     }
 
     private GeneratePresignedUrlRequest getGeneratePresignedURLRequest(
