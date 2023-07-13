@@ -8,7 +8,7 @@ import com.basak.dalcom.domain.accounts.data.AccountRepository;
 import com.basak.dalcom.domain.accounts.data.AccountRole;
 import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedEmailException;
 import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedPhoneNumberException;
-import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
+import com.basak.dalcom.domain.common.exception.custom.DuplicatedFieldException;
 import com.basak.dalcom.domain.profiles.service.UserProfileService;
 import java.util.Optional;
 import java.util.UUID;
