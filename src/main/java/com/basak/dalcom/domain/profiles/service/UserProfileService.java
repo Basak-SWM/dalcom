@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.profiles;
+package com.basak.dalcom.domain.profiles.service;
 
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
