@@ -2,11 +2,13 @@ package com.basak.dalcom.domain.core.speech.controller.response_dto;
 
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class GetSpeechDto {
 
     @Schema(description = "생성된 speech의 id")

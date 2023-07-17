@@ -1,6 +1,6 @@
 package com.basak.dalcom.domain.common.exception;
 
-import com.basak.dalcom.domain.common.exception.custom.DuplicatedFieldException;
+import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
