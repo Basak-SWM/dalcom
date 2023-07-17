@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface PresentationRepository extends JpaRepository<Presentation, Integer> {
 
     Slice<Presentation> findSliceByUserProfile(UserProfile userProfile, Pageable pageable);
+    Presentation findPresentationById(Integer presentationId);
 
 
 }
