@@ -1,11 +1,12 @@
 package com.basak.dalcom.domain.core.speech.service;
 
+import com.basak.dalcom.domain.common.exception.HandledException;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
-import com.basak.dalcom.domain.core.speech.service.exceptions.SpeechNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -50,8 +51,6 @@ public class SpeechService {
      */
     public Speech findSpeechById(Integer speechId) {
         return speechRepository.findSpeechById(speechId)
-            .orElseThrow(()-> new SpeechNotFoundException("speechId = " + speechId.toString()));
+            .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
     }
-
-
 }

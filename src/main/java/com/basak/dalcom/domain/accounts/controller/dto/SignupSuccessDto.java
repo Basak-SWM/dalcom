@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.accounts.controller.response_dto;
+package com.basak.dalcom.domain.accounts.controller.dto;
 
 import com.basak.dalcom.domain.accounts.data.Account;
 import io.swagger.v3.oas.annotations.media.Schema;

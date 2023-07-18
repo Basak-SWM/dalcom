@@ -1,7 +1,7 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
-import com.basak.dalcom.domain.core.speech.controller.response_dto.GetSpeechDto;
-import com.basak.dalcom.domain.core.speech.controller.response_dto.SpeechCreateSuccessDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.GetSpeechDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.SpeechCreateSuccessDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
 import io.swagger.v3.oas.annotations.Operation;

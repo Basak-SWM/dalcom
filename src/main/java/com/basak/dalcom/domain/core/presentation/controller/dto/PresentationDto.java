@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.core.presentation.controller.request_dto;
+package com.basak.dalcom.domain.core.presentation.controller.dto;
 
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import lombok.Getter;
