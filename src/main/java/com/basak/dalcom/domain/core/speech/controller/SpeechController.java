@@ -65,7 +65,8 @@ public class SpeechController {
     @ApiResponse(responseCode = "404", description = "전달된 presentationId를 가지는 프레젠테이션이 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
     @GetMapping("/{speechId}/get-audio-segment-upload-url")
-    public ResponseEntity<String> getAudioSegmentUploadPresignedUrl(@PathVariable Integer speechId) {
+    public ResponseEntity<String> getAudioSegmentUploadPresignedUrl(
+        @PathVariable Integer speechId) {
         // TODO: Presigned URL 생성
         String DUMMY_PRESIGNED_URL = "https://DUMMY";
         return new ResponseEntity<>(DUMMY_PRESIGNED_URL, HttpStatus.OK);
@@ -91,7 +92,7 @@ public class SpeechController {
     @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공")
     @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
-    @GetMapping("/{speechId}")
+    @GetMapping("/")
     public ResponseEntity<GetSpeechDto> getSpeechList(@PathVariable Integer speechId) {
         // TODO
         return null;
