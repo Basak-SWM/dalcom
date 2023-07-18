@@ -2,10 +2,10 @@ package com.basak.dalcom.domain.core.presentation.controller;
 
 import com.basak.dalcom.domain.accounts.service.exceptions.AccountNotFoundException;
 import com.basak.dalcom.domain.common.controllers.exceptions.NotFoundResponseException;
-import com.basak.dalcom.domain.core.presentation.controller.request_dto.PresentationCreateDto;
-import com.basak.dalcom.domain.core.presentation.controller.request_dto.PresentationDto;
-import com.basak.dalcom.domain.core.presentation.controller.response_dto.PresentationCreateSuccessDto;
-import com.basak.dalcom.domain.core.presentation.controller.response_dto.PresentationDtoSlice;
+import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateDto;
+import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateSuccessDto;
+import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationDto;
+import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationDtoSlice;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.service.PresentationService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,8 +1,8 @@
 package com.basak.dalcom.domain.accounts.controller;
 
+import com.basak.dalcom.domain.accounts.controller.dto.SignupSuccessDto;
+import com.basak.dalcom.domain.accounts.controller.dto.UserSignupDto;
 import com.basak.dalcom.domain.accounts.controller.exceptions.DuplicatedAccountFieldException;
-import com.basak.dalcom.domain.accounts.controller.request_dto.UserSignupDto;
-import com.basak.dalcom.domain.accounts.controller.response_dto.SignupSuccessDto;
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
 import com.basak.dalcom.domain.common.controllers.exceptions.FieldConflictResponseException;

@@ -3,7 +3,7 @@ package com.basak.dalcom.domain.core.presentation.service;
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
 import com.basak.dalcom.domain.accounts.service.exceptions.AccountNotFoundException;
-import com.basak.dalcom.domain.core.presentation.controller.request_dto.PresentationCreateDto;
+import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateDto;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
