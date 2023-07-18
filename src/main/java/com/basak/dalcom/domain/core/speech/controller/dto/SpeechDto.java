@@ -9,19 +9,17 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class GetSpeechDto {
-
-    @Schema(description = "생성된 speech의 id")
-    private final String fullAudioS3Uri;
+public class SpeechDto {
 
     @Schema(description = "STT 결과 (Clova 응답 Raw 저장값)")
     private final String sttResult;
-
     @Schema(description = "사용자 기호 Raw 저장값")
     private final String userSymbol;
+    @Schema(description = "생성된 speech의 id")
+    private Integer id;
 
-    public GetSpeechDto(Speech speech) {
-        this.fullAudioS3Uri = speech.getFullAudioS3Url();
+    public SpeechDto(Speech speech) {
+        this.id = speech.getId();
         this.sttResult = speech.getSttScript();
         this.userSymbol = speech.getUserSymbol();
     }

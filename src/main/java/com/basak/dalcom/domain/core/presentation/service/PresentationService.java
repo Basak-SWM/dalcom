@@ -7,9 +7,8 @@ import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCrea
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
+import java.util.List;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +38,11 @@ public class PresentationService {
         return presentation;
     }
 
-    public Slice<Presentation> getPresentationsOf(String uuid, Pageable pageable) {
+    public List<Presentation> getPresentationsOf(String uuid) {
         Account account = accountService.findUserAccountByUuid(uuid)
             .orElseThrow(
-                () -> new HandledException(HttpStatus.NOT_FOUND, "Presentation not found."));
+                () -> new HandledException(HttpStatus.NOT_FOUND, "Account not found."));
         UserProfile userProfile = account.getUserProfile();
-
-        return presentationRepository.findSliceByUserProfile(userProfile, pageable);
+        return presentationRepository.findByUserProfile(userProfile);
     }
 }
