@@ -1,7 +1,5 @@
 package com.basak.dalcom.domain.core.presentation.controller;
 
-import com.basak.dalcom.domain.accounts.service.exceptions.AccountNotFoundException;
-import com.basak.dalcom.domain.common.controllers.exceptions.NotFoundResponseException;
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateDto;
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateSuccessDto;
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationDto;
@@ -45,18 +43,12 @@ public class PresentationController {
         content = @Content(schema = @Schema(implementation = Void.class)))
     @PostMapping("")
     public ResponseEntity<PresentationCreateSuccessDto> createPresentation(
-        @Valid @RequestBody PresentationCreateDto dto)
-        throws NotFoundResponseException {
-        try {
-            Presentation presentation = presentationService.createPresentation(dto);
-            return new ResponseEntity<>(
-                new PresentationCreateSuccessDto(presentation),
-                HttpStatus.CREATED
-            );
-        } catch (AccountNotFoundException exception) {
-            throw new NotFoundResponseException(
-                exception.getObjectName() + " : " + exception.getSearchCondition());
-        }
+        @Valid @RequestBody PresentationCreateDto dto) {
+        Presentation presentation = presentationService.createPresentation(dto);
+        return new ResponseEntity<>(
+            new PresentationCreateSuccessDto(presentation),
+            HttpStatus.CREATED
+        );
     }
 
     @Operation(
@@ -69,16 +61,10 @@ public class PresentationController {
         content = @Content(schema = @Schema(implementation = Void.class)))
     @GetMapping("")
     public ResponseEntity<Slice<PresentationDto>> getOwnPresentations(String accountUuid,
-        Pageable pageable)
-        throws NotFoundResponseException {
-        try {
-            Slice<Presentation> presentations = presentationService
-                .getPresentationsOf(accountUuid, pageable);
-            Slice<PresentationDto> presentationDtos = presentations.map(PresentationDto::new);
-            return new ResponseEntity<>(presentationDtos, HttpStatus.OK);
-        } catch (AccountNotFoundException exception) {
-            throw new NotFoundResponseException(
-                exception.getObjectName() + " : " + exception.getSearchCondition());
-        }
+        Pageable pageable) {
+        Slice<Presentation> presentations = presentationService
+            .getPresentationsOf(accountUuid, pageable);
+        Slice<PresentationDto> presentationDtos = presentations.map(PresentationDto::new);
+        return new ResponseEntity<>(presentationDtos, HttpStatus.OK);
     }
 }

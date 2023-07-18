@@ -2,7 +2,7 @@ package com.basak.dalcom.domain.core.presentation.service;
 
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
-import com.basak.dalcom.domain.accounts.service.exceptions.AccountNotFoundException;
+import com.basak.dalcom.domain.common.exception.HandledException;
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateDto;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
@@ -10,6 +10,7 @@ import com.basak.dalcom.domain.profiles.data.UserProfile;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -19,10 +20,10 @@ public class PresentationService {
     private final AccountService accountService;
     private final PresentationRepository presentationRepository;
 
-    public Presentation createPresentation(PresentationCreateDto dto)
-        throws AccountNotFoundException {
+    public Presentation createPresentation(PresentationCreateDto dto) {
         Account account = accountService.findUserAccountByUuid(dto.getAccountUuid())
-            .orElseThrow(() -> new AccountNotFoundException("uuid=" + dto.getAccountUuid()));
+            .orElseThrow(
+                () -> new HandledException(HttpStatus.NOT_FOUND, "Presentation not found."));
 
         UserProfile userProfile = account.getUserProfile();
 
@@ -38,10 +39,10 @@ public class PresentationService {
         return presentation;
     }
 
-    public Slice<Presentation> getPresentationsOf(String uuid, Pageable pageable)
-        throws AccountNotFoundException {
+    public Slice<Presentation> getPresentationsOf(String uuid, Pageable pageable) {
         Account account = accountService.findUserAccountByUuid(uuid)
-            .orElseThrow(() -> new AccountNotFoundException("uuid=" + uuid));
+            .orElseThrow(
+                () -> new HandledException(HttpStatus.NOT_FOUND, "Presentation not found."));
         UserProfile userProfile = account.getUserProfile();
 
         return presentationRepository.findSliceByUserProfile(userProfile, pageable);

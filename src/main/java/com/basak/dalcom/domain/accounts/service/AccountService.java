@@ -6,9 +6,6 @@ import com.basak.dalcom.domain.accounts.controller.dto.UserSignupDto;
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.data.AccountRepository;
 import com.basak.dalcom.domain.accounts.data.AccountRole;
-import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedEmailException;
-import com.basak.dalcom.domain.accounts.service.exceptions.DuplicatedPhoneNumberException;
-import com.basak.dalcom.domain.common.service.exceptions.DuplicatedFieldException;
 import com.basak.dalcom.domain.profiles.service.UserProfileService;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,12 +27,9 @@ public class AccountService {
      *
      * @param requestDto 회원 가입에 필요한 정보가 담긴 dto
      * @return 생성된 Account entity (user profile이 연결되어 있음)
-     * @throws DuplicatedEmailException:       중복된 이메일로 요청된 경우
-     * @throws DuplicatedPhoneNumberException: 중복된 전화 번호로 요청된 경우
      */
     @Transactional
-    public Account userSignUp(UserSignupDto requestDto)
-        throws DuplicatedFieldException {
+    public Account userSignUp(UserSignupDto requestDto) {
         uniqueValueDuplicationCheck(accountRepository,
             requestDto.getEmail(), requestDto.getPhoneNumber());
 
