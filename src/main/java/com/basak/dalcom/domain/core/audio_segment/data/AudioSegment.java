@@ -12,8 +12,16 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Getter
 @Table(name = "audio_segment")
 public class AudioSegment extends BaseEntity {
 
@@ -25,12 +33,13 @@ public class AudioSegment extends BaseEntity {
     @JoinColumn(name = "speech_id", nullable = false)
     private Speech speech;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String fullAudioS3Url;
-
-    @Column(nullable = false)
-    private LocalDateTime uploadedAt;
 
     @Transient
     private LocalDateTime lastModifiedDate;
+
+    public void updateAsPresignedUrl(String presignedUrl) {
+        this.fullAudioS3Url = presignedUrl;
+    }
 }

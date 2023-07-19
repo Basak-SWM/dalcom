@@ -2,6 +2,8 @@ package com.basak.dalcom.domain.core.speech.controller.dto;
 
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.net.URL;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,10 +19,21 @@ public class SpeechDto {
     private final String userSymbol;
     @Schema(description = "생성된 speech의 id")
     private Integer id;
+    @Schema(description = "정렬된 AudioSegment Presigned URL 목록")
+    private List<URL> audioSegments;
 
     public SpeechDto(Speech speech) {
         this.id = speech.getId();
         this.sttResult = speech.getSttScript();
         this.userSymbol = speech.getUserSymbol();
+        this.audioSegments = speech.getAudioSegments().stream()
+            .map(audioSegment -> audioSegment.getFullAudioS3Url())
+            .map(url -> {
+                try {
+                    return new URL(url);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).toList();
     }
 }
