@@ -1,5 +1,7 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
+import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
+import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
@@ -13,12 +15,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URL;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SpeechController {
 
     private final SpeechService speechService;
+    private final AudioSegmentService audioSegmentService;
 
     @Operation(
         summary = "최초 스피치 생성 API",
@@ -84,9 +89,27 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId,
         @RequestParam(value = "extension", defaultValue = "webm") String ext) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId);
-        String key = speechService.getAudioSegmentUploadKey(ext);
+        String key = speechService.getAudioSegmentUploadKey(presentationId, speechId, ext);
         URL presignedUrl = speechService.getAudioSegmentUploadUrl(key);
         return new ResponseEntity<>(new UrlDto(presignedUrl), HttpStatus.OK);
+    }
+
+    @Operation(
+        summary = "Presigned URL로 업로드 완료 처리 API",
+        description = "서버에서 발급한 Presigned URL로 업로드가 완료된 것으로 상태를 갱신하는 API"
+    )
+    @ApiResponse(responseCode = "201", description = "업로드 완료 처리 성공 (AudioSegment 생성 완료)",
+        content = @Content(schema = @Schema(implementation = Void.class)))
+    @PostMapping("/{speech-id}/audio-segment-upload-complete")
+    public ResponseEntity<Void> audioSegmentUploadComplete(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @Valid @RequestBody UrlDto dto
+    ) {
+        AudioSegment audioSegment = audioSegmentService.createAudioSegment(speechId, dto.getUrl());
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Operation(
