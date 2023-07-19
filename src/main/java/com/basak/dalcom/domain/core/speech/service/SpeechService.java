@@ -1,13 +1,14 @@
 package com.basak.dalcom.domain.core.speech.service;
 
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
+import com.basak.dalcom.config.NCPConfig;
 import com.basak.dalcom.domain.common.exception.HandledException;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
-import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
+import com.basak.dalcom.external_api.wasak.service.WasakService;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -26,19 +27,21 @@ public class SpeechService {
     private final SpeechRepository speechRepository;
     private final PresentationRepository presentationRepository;
     private final PresignedURLService presignedURLService;
-    private final AudioSegmentService audioSegmentService;
+    private final WasakService wasakService;
 
+    private final NCPConfig ncpConfig;
 
     /**
      * Speech 녹음 완료 후 분석 시작하는 서비스
      */
-    public void speechRecordDoneAndStartAnalyze(Integer speechId) {
-        // TODO: Speech 음성 하나로 합치고 S3 URL 받기
-        String FULL_S3_URL_DUMMY = "https://s3.ap-northeast-2.amazonaws.com/FULL_S3_URL_HERE.mp3";
+    public void speechRecordDoneAndStartAnalyze(Integer presentationId, Integer speechId) {
+        URL callbackUrl = ncpConfig.getClovaSpeechCallbackUrl(presentationId, speechId);
 
-        // TODO: Naver Clova에 음성 파일 보내기
+        String fullAudioKey = getFullAudioUploadKey(presentationId, speechId, "mp3");
+        URL uploadUrl = presignedURLService.getPresignedURLForUpload(fullAudioKey);
+        URL downloadUrl = presignedURLService.getPresignedURLForDownload(fullAudioKey);
 
-        // TODO: Wasak 서버에 분석 보내기
+        wasakService.requestAnalysis1(speechId, callbackUrl, uploadUrl, downloadUrl);
     }
 
 
@@ -97,7 +100,12 @@ public class SpeechService {
         LocalDateTime now = LocalDateTime.now();
         UUID uuid = UUID.randomUUID();
         Long timestamp = Timestamp.valueOf(now).getTime();
-        return presentationId + "/" + speechId + "/" + timestamp + "_" + uuid + "." + ext;
+        return presentationId + "/" + speechId + "/audio_segments/" + timestamp + "_" + uuid + "."
+            + ext;
+    }
+
+    public String getFullAudioUploadKey(Integer presentationId, Integer speechId, String ext) {
+        return presentationId + "/" + speechId + "/full_audio." + ext;
     }
 
     /**

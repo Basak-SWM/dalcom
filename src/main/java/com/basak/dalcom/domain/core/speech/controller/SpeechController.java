@@ -67,7 +67,7 @@ public class SpeechController {
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
-        speechService.speechRecordDoneAndStartAnalyze(speechId);
+        speechService.speechRecordDoneAndStartAnalyze(presentationId, speechId);
         return new ResponseEntity<>(
             "Success",
             HttpStatus.OK
@@ -158,8 +158,9 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "200", description = "Clova 데이터 정상 수신")
     @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우")
-    @PostMapping("/{speechId}/clova-result-callback")
-    public void clovaResultCallback(@PathVariable Integer speechId, @RequestBody String requestDto) {
+    @PostMapping("/{speech-id}/clova-result-callback")
+    public void clovaResultCallback(@PathVariable Integer speechId,
+        @RequestBody String requestDto) {
         speechService.saveClovaResultToDB(speechId, requestDto);
     }
 }
