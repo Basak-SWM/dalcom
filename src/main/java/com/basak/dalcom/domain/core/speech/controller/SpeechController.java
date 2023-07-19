@@ -1,5 +1,7 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
+import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
+import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
@@ -13,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URL;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SpeechController {
 
     private final SpeechService speechService;
+    private final AudioSegmentService audioSegmentService;
 
     @Operation(
         summary = "최초 스피치 생성 API",
@@ -63,7 +67,7 @@ public class SpeechController {
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
-        speechService.speechRecordDoneAndStartAnalyze(speechId);
+        speechService.speechRecordDoneAndStartAnalyze(presentationId, speechId);
         return new ResponseEntity<>(
             "Success",
             HttpStatus.OK
@@ -84,10 +88,31 @@ public class SpeechController {
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId,
         @RequestParam(value = "extension", defaultValue = "webm") String ext) {
-        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId);
-        String key = speechService.getAudioSegmentUploadKey(ext);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId,
+            false);
+        String key = speechService.getAudioSegmentUploadKey(presentationId, speechId, ext);
         URL presignedUrl = speechService.getAudioSegmentUploadUrl(key);
         return new ResponseEntity<>(new UrlDto(presignedUrl), HttpStatus.OK);
+    }
+
+    @Operation(
+        summary = "Presigned URL로 업로드 완료 처리 API",
+        description = "서버에서 발급한 Presigned URL로 업로드가 완료된 것으로 상태를 갱신하는 API"
+    )
+    @ApiResponse(responseCode = "201", description = "업로드 완료 처리 성공 (AudioSegment 생성 완료)",
+        content = @Content(schema = @Schema(implementation = Void.class)))
+    @PostMapping("/{speech-id}/audio-segment-upload-complete")
+    public ResponseEntity<Void> audioSegmentUploadComplete(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @Valid @RequestBody UrlDto dto
+    ) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId,
+            false);
+        AudioSegment audioSegment = audioSegmentService.createAudioSegment(speech, dto.getUrl());
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @Operation(
@@ -103,7 +128,8 @@ public class SpeechController {
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
-        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId,
+            true);
         return new ResponseEntity<>(new SpeechDto(speech), HttpStatus.OK);
     }
 
@@ -132,8 +158,9 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "200", description = "Clova 데이터 정상 수신")
     @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우")
-    @PostMapping("/{speechId}/clova-result-callback")
-    public void clovaResultCallback(@PathVariable Integer speechId, @RequestBody String requestDto) {
+    @PostMapping("/{speech-id}/clova-result-callback")
+    public void clovaResultCallback(@PathVariable Integer speechId,
+        @RequestBody String requestDto) {
         speechService.saveClovaResultToDB(speechId, requestDto);
     }
 }

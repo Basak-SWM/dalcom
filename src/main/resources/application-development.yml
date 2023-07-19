@@ -22,6 +22,10 @@ cloud:
         expiration-time-min: 60
         bucket-name: ${AWS_S3_BUCKET}
 
+  ncp:
+    clova-speech:
+      callback-url-template: http://localhost:8080/api/v1/presentations/%d/speeches/%d/clova-result-callback
+
 wasak:
   api:
     host: http://localhost:8000

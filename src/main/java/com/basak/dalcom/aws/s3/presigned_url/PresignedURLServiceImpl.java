@@ -9,6 +9,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.basak.dalcom.config.aws.S3Config;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -66,6 +67,17 @@ public class PresignedURLServiceImpl implements PresignedURLService {
     @Override
     public List<URL> getPresignedURLsForDownload(String prefix) {
         return getPresignedURLsForDownload(config.DEFAULT_BUCKET_NAME, prefix);
+    }
+
+    @Override
+    public URL getPresignedURLForDownload(URL url) {
+        String path = url.getPath();
+        String key = Paths.get(path).toString().substring(1);
+
+        String host = url.getHost();
+        String bucketName = host.split("\\.")[0];
+
+        return getPresignedURLForDownload(bucketName, key);
     }
 
     private GeneratePresignedUrlRequest getGeneratePresignedURLRequest(

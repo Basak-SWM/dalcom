@@ -45,4 +45,8 @@ public class Speech extends BaseEntity {
 
     @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AudioSegment> audioSegments;
+
+    public void setPresignedAudioSegments(List<AudioSegment> presignedAudioSegments) {
+        this.audioSegments = presignedAudioSegments;
+    }
 }
