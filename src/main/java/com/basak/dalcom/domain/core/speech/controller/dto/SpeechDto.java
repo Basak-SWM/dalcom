@@ -3,6 +3,7 @@ package com.basak.dalcom.domain.core.speech.controller.dto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,14 +27,19 @@ public class SpeechDto {
         this.id = speech.getId();
         this.sttResult = speech.getSttScript();
         this.userSymbol = speech.getUserSymbol();
-        this.audioSegments = speech.getAudioSegments().stream()
-            .map(audioSegment -> audioSegment.getFullAudioS3Url())
-            .map(url -> {
-                try {
-                    return new URL(url);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }).toList();
+
+        if (speech.getAudioSegments() != null) {
+            this.audioSegments = speech.getAudioSegments().stream()
+                .map(audioSegment -> audioSegment.getFullAudioS3Url())
+                .map(url -> {
+                    try {
+                        return new URL(url);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }).toList();
+        } else {
+            this.audioSegments = new ArrayList<>();
+        }
     }
 }
