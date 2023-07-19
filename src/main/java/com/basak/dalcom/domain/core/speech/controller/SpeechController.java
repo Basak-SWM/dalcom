@@ -151,4 +151,15 @@ public class SpeechController {
             .toList();
         return new ResponseEntity<>(dtos, HttpStatus.OK);
     }
+
+    @Operation(
+        summary = "Clova STT 분석 결과 수신하는 API",
+        description = "Clova STT 분석 결과 수신하는 API"
+    )
+    @ApiResponse(responseCode = "200", description = "Clova 데이터 정상 수신")
+    @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우")
+    @PostMapping("/{speechId}/clova-result-callback")
+    public void clovaResultCallback(@PathVariable Integer speechId, @RequestBody String requestDto) {
+        speechService.saveClovaResultToDB(speechId, requestDto);
+    }
 }
