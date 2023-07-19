@@ -2,12 +2,17 @@ package com.basak.dalcom.domain.core.speech.service;
 
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.domain.common.exception.HandledException;
+import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
+import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -21,6 +26,7 @@ public class SpeechService {
     private final SpeechRepository speechRepository;
     private final PresentationRepository presentationRepository;
     private final PresignedURLService presignedURLService;
+    private final AudioSegmentService audioSegmentService;
 
 
     /**
@@ -60,16 +66,38 @@ public class SpeechService {
             .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
     }
 
-    public Speech findSpeechByIdAndPresentationId(Integer speechId, Integer presentationId) {
-        return speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
+    public Speech findSpeechByIdAndPresentationId(Integer speechId, Integer presentationId,
+        boolean withAudioSegments) {
+        Speech speech = speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
             .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
+
+        speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
+            .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
+
+        if (withAudioSegments) {
+            List<AudioSegment> audioSegments = speech.getAudioSegments();
+
+            for (AudioSegment audioSegment : audioSegments) {
+                try {
+                    URL presignedUrl = presignedURLService.getPresignedURLForDownload(
+                        new URL(audioSegment.getFullAudioS3Url()));
+                    audioSegment.updateAsPresignedUrl(presignedUrl.toString());
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            speech.setPresignedAudioSegments(audioSegments);
+        }
+
+        return speech;
     }
 
-    public String getAudioSegmentUploadKey(String ext) {
+    public String getAudioSegmentUploadKey(Integer presentationId, Integer speechId, String ext) {
         LocalDateTime now = LocalDateTime.now();
         UUID uuid = UUID.randomUUID();
-        Long mill = now.getNano() / 1000000L;
-        return mill + "_" + uuid + "." + ext;
+        Long timestamp = Timestamp.valueOf(now).getTime();
+        return presentationId + "/" + speechId + "/" + timestamp + "_" + uuid + "." + ext;
     }
 
     public URL getAudioSegmentUploadUrl(String key) {

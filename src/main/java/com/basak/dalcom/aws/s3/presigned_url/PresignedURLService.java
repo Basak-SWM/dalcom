@@ -16,4 +16,6 @@ public interface PresignedURLService {
     List<URL> getPresignedURLsForDownload(String bucketName, String prefix);
 
     List<URL> getPresignedURLsForDownload(String prefix);
+
+    URL getPresignedURLForDownload(URL url);
 }

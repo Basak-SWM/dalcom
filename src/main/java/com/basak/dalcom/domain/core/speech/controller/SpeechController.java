@@ -88,7 +88,8 @@ public class SpeechController {
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId,
         @RequestParam(value = "extension", defaultValue = "webm") String ext) {
-        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId,
+            false);
         String key = speechService.getAudioSegmentUploadKey(presentationId, speechId, ext);
         URL presignedUrl = speechService.getAudioSegmentUploadUrl(key);
         return new ResponseEntity<>(new UrlDto(presignedUrl), HttpStatus.OK);
@@ -108,7 +109,9 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId,
         @Valid @RequestBody UrlDto dto
     ) {
-        AudioSegment audioSegment = audioSegmentService.createAudioSegment(speechId, dto.getUrl());
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId,
+            false);
+        AudioSegment audioSegment = audioSegmentService.createAudioSegment(speech, dto.getUrl());
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -125,7 +128,8 @@ public class SpeechController {
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
-        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId,
+            true);
         return new ResponseEntity<>(new SpeechDto(speech), HttpStatus.OK);
     }
 
