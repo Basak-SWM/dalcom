@@ -50,8 +50,17 @@ public class SpeechService {
      */
     public Speech findSpeechById(Integer speechId) {
         return speechRepository.findSpeechById(speechId)
-            .orElseThrow(()-> new SpeechNotFoundException("speechId = " + speechId.toString()));
+            .orElseThrow(() -> new SpeechNotFoundException("speechId = " + speechId.toString()));
     }
 
+    /**
+     * Clova STT 분석 결과 수신해서 DB 저장
+     */
+    public void saveClovaResultToDB(Integer speechId, String dto) {
+        speechRepository.findById(speechId)
+            .orElseThrow(() -> new SpeechNotFoundException("speechId = " + speechId.toString()));
+
+        speechRepository.updateSttScriptById(speechId, dto);
+    }
 
 }
