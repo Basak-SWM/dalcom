@@ -31,7 +31,7 @@ public class AudioSegment extends BaseEntity {
     @JoinColumn(name = "speech_id", nullable = false)
     private Speech speech;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String fullAudioS3Url;
 
     @Transient
