@@ -70,15 +70,14 @@ public class SpeechService {
     }
 
     public Speech findSpeechByIdAndPresentationId(Integer speechId, Integer presentationId,
-        boolean withAudioSegments) {
+        boolean preign) {
         Speech speech = speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
             .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
 
-        speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
-            .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
-
-        if (withAudioSegments) {
-            List<AudioSegment> audioSegments = speech.getAudioSegments();
+        if (preign) {
+            List<AudioSegment> audioSegments = speech.getAudioSegments().stream()
+                .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url))
+                .toList();
 
             for (AudioSegment audioSegment : audioSegments) {
                 try {
