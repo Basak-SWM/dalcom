@@ -9,7 +9,7 @@ spring:
     password: thisispassword123!
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
 cloud:
   aws:
@@ -21,3 +21,7 @@ cloud:
       presigned-url:
         expiration-time-min: 60
         bucket-name: ${AWS_S3_BUCKET}
+
+wasak:
+  api:
+    host: http://localhost:8000

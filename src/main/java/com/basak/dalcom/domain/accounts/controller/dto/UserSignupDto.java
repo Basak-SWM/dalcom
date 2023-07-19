@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.accounts.controller.request_dto;
+package com.basak.dalcom.domain.accounts.controller.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.Email;
