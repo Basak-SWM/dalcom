@@ -1,13 +1,18 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
-import com.basak.dalcom.domain.core.speech.controller.response_dto.GetSpeechDto;
-import com.basak.dalcom.domain.core.speech.controller.response_dto.SpeechCreateSuccessDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.SpeechDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.net.URL;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +21,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "speeches")
 @AllArgsConstructor
 @RestController
-@RequestMapping("/api/v1/presentations/{presentationId}/speeches")
+@RequestMapping("/api/v1/presentations/{presentation-id}/speeches")
 public class SpeechController {
 
     private final SpeechService speechService;
@@ -33,11 +40,12 @@ public class SpeechController {
     @ApiResponse(responseCode = "404", description = "전달된 presentationId를 가지는 프레젠테이션이 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
     @PostMapping("")
-    public ResponseEntity<SpeechCreateSuccessDto> createSpeech(
-        @PathVariable Integer presentationId) {
+    public ResponseEntity<SpeechDto> createSpeech(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId) {
         Speech speech = speechService.createSpeech(presentationId);
         return new ResponseEntity<>(
-            new SpeechCreateSuccessDto(speech),
+            new SpeechDto(speech),
             HttpStatus.CREATED
         );
     }
@@ -49,8 +57,12 @@ public class SpeechController {
     @ApiResponse(responseCode = "200", description = "스피치 분석 시작 성공")
     @ApiResponse(responseCode = "404", description = "전달된 speechId 가지는 개체가 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
-    @PostMapping("/{speechId}/record-done")
-    public ResponseEntity<String> speechRecordDone(@PathVariable Integer speechId) {
+    @PostMapping("/{speech-id}/record-done")
+    public ResponseEntity<String> speechRecordDone(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
         speechService.speechRecordDoneAndStartAnalyze(speechId);
         return new ResponseEntity<>(
             "Success",
@@ -65,12 +77,17 @@ public class SpeechController {
     @ApiResponse(responseCode = "200", description = "Presigned URL 반환 성공")
     @ApiResponse(responseCode = "404", description = "전달된 presentationId를 가지는 프레젠테이션이 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
-    @GetMapping("/{speechId}/get-audio-segment-upload-url")
-    public ResponseEntity<String> getAudioSegmentUploadPresignedUrl(
-        @PathVariable Integer speechId) {
-        // TODO: Presigned URL 생성
-        String DUMMY_PRESIGNED_URL = "https://DUMMY";
-        return new ResponseEntity<>(DUMMY_PRESIGNED_URL, HttpStatus.OK);
+    @GetMapping("/{speech-id}/get-audio-segment-upload-url")
+    public ResponseEntity<UrlDto> getAudioSegmentUploadPresignedUrl(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @RequestParam(value = "extension", defaultValue = "webm") String ext) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId);
+        String key = speechService.getAudioSegmentUploadKey(ext);
+        URL presignedUrl = speechService.getAudioSegmentUploadUrl(key);
+        return new ResponseEntity<>(new UrlDto(presignedUrl), HttpStatus.OK);
     }
 
     @Operation(
@@ -80,23 +97,33 @@ public class SpeechController {
     @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공")
     @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
-    @GetMapping("/{speechId}")
-    public ResponseEntity<GetSpeechDto> getSpeech(@PathVariable Integer speechId) {
-        Speech speech = speechService.findSpeechById(speechId);
-        return new ResponseEntity<>(new GetSpeechDto(speech), HttpStatus.OK);
+    @GetMapping("/{speech-id}")
+    public ResponseEntity<SpeechDto> getSpeech(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(speechId, presentationId);
+        return new ResponseEntity<>(new SpeechDto(speech), HttpStatus.OK);
     }
 
     @Operation(
         summary = "스피치 목록 조회 API",
         description = "해당 Presentation 내 스피치 목록 조회하는 API"
     )
-    @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공")
-    @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우",
+    @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공",
+        content = @Content(array = @ArraySchema(schema = @Schema(implementation = SpeechDto.class))))
+    @ApiResponse(responseCode = "404", description = "해당 PresentationId를 가지는 스피치가 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
-    @GetMapping("/")
-    public ResponseEntity<GetSpeechDto> getSpeechList(@PathVariable Integer speechId) {
-        // TODO
-        return null;
+    @GetMapping("")
+    public ResponseEntity<List<SpeechDto>> getSpeechList(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId) {
+        List<Speech> speeches = speechService.findSpeechesByPresentationId(presentationId);
+        List<SpeechDto> dtos = speeches.stream()
+            .map(SpeechDto::new)
+            .toList();
+        return new ResponseEntity<>(dtos, HttpStatus.OK);
     }
 
     @Operation(

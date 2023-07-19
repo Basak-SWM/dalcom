@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.core.presentation.controller.request_dto;
+package com.basak.dalcom.domain.core.presentation.controller.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.NotBlank;

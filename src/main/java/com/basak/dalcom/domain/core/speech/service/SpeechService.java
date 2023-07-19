@@ -1,11 +1,17 @@
 package com.basak.dalcom.domain.core.speech.service;
 
+import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
+import com.basak.dalcom.domain.common.exception.HandledException;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
-import com.basak.dalcom.domain.core.speech.service.exceptions.SpeechNotFoundException;
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -14,6 +20,7 @@ public class SpeechService {
 
     private final SpeechRepository speechRepository;
     private final PresentationRepository presentationRepository;
+    private final PresignedURLService presignedURLService;
 
 
     /**
@@ -50,7 +57,19 @@ public class SpeechService {
      */
     public Speech findSpeechById(Integer speechId) {
         return speechRepository.findSpeechById(speechId)
-            .orElseThrow(() -> new SpeechNotFoundException("speechId = " + speechId.toString()));
+            .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
+    }
+
+    public Speech findSpeechByIdAndPresentationId(Integer speechId, Integer presentationId) {
+        return speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
+            .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
+    }
+
+    public String getAudioSegmentUploadKey(String ext) {
+        LocalDateTime now = LocalDateTime.now();
+        UUID uuid = UUID.randomUUID();
+        Long mill = now.getNano() / 1000000L;
+        return mill + "_" + uuid + "." + ext;
     }
 
     /**
@@ -58,9 +77,16 @@ public class SpeechService {
      */
     public void saveClovaResultToDB(Integer speechId, String dto) {
         speechRepository.findById(speechId)
-            .orElseThrow(() -> new SpeechNotFoundException("speechId = " + speechId.toString()));
+            .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
 
         speechRepository.updateSttScriptById(speechId, dto);
     }
 
+    public URL getAudioSegmentUploadUrl(String key) {
+        return presignedURLService.getPresignedURLForUpload(key);
+    }
+
+    public List<Speech> findSpeechesByPresentationId(Integer presentationId) {
+        return speechRepository.findSpeechesByPresentationId(presentationId);
+    }
 }
