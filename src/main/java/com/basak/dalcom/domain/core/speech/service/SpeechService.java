@@ -2,7 +2,7 @@ package com.basak.dalcom.domain.core.speech.service;
 
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.config.NCPConfig;
-import com.basak.dalcom.domain.common.exception.HandledException;
+import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
@@ -17,7 +17,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -66,13 +65,13 @@ public class SpeechService {
      */
     public Speech findSpeechById(Integer speechId) {
         return speechRepository.findSpeechById(speechId)
-            .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
+            .orElseThrow(() -> new NotFoundException("Speech"));
     }
 
     public Speech findSpeechByIdAndPresentationId(Integer speechId, Integer presentationId,
         boolean withAudioSegments) {
         Speech speech = speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
-            .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
+            .orElseThrow(() -> new NotFoundException("Speech"));
 
         speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
             .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
@@ -113,7 +112,7 @@ public class SpeechService {
      */
     public void saveClovaResultToDB(Integer speechId, String dto) {
         speechRepository.findById(speechId)
-            .orElseThrow(() -> new HandledException(HttpStatus.NOT_FOUND, "Speech not found."));
+            .orElseThrow(() -> new NotFoundException("Speech"));
 
         speechRepository.updateSttScriptById(speechId, dto);
     }
