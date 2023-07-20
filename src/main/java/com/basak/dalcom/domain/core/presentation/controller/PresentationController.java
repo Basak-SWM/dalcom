@@ -4,6 +4,7 @@ import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCrea
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationRespDto;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.service.PresentationService;
+import com.basak.dalcom.domain.core.presentation.service.dto.PresentationDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,7 +49,7 @@ public class PresentationController {
         UUID uuid = UUID.fromString(dto.getAccountUuid());
 
         Presentation presentation = presentationService
-            .createPresentation(uuid, presentationDto.toServiceDto());
+            .createPresentation(uuid, new PresentationDto(presentationDto));
 
         return new ResponseEntity<>(
             new PresentationRespDto(presentation),

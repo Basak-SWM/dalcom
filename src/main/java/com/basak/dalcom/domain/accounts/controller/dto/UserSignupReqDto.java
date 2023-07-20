@@ -12,7 +12,7 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class UserSignupDto {
+public class UserSignupReqDto {
 
     @Schema(description = "닉네임", type = "string", example = "박유빈")
     @NotBlank(message = "닉네임은 필수 입력 값입니다.")
@@ -35,14 +35,4 @@ public class UserSignupDto {
 
     @Schema(description = "음성 데이터 활용 동의 여부", type = "boolean", example = "true")
     private Boolean voiceUsageAgreement;
-
-    public com.basak.dalcom.domain.accounts.service.dto.UserSignupDto toServiceDto() {
-        return com.basak.dalcom.domain.accounts.service.dto.UserSignupDto.builder()
-            .nickname(nickname)
-            .email(email)
-            .phoneNumber(phoneNumber)
-            .password(password)
-            .voiceUsageAgreement(voiceUsageAgreement)
-            .build();
-    }
 }

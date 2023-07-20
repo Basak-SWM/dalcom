@@ -29,11 +29,5 @@ public class PresentationCreateDto {
         protected String outline;
         @Schema(description = "잘 하고 싶은 점", type = "string", example = "각각의 장단점이 잘 부각되도록, 구체적인 예시와 함께 설명하기")
         protected String checkpoint;
-
-        public com.basak.dalcom.domain.core.presentation.service.dto.PresentationDto toServiceDto() {
-            return new com.basak.dalcom.domain.core.presentation.service.dto.PresentationDto(
-                null, title, outline, checkpoint
-            );
-        }
     }
 }
