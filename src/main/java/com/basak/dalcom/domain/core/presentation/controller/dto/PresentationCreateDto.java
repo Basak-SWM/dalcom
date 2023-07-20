@@ -15,15 +15,19 @@ public class PresentationCreateDto {
     @NotBlank(message = "필수 입력 값입니다.")
     private String accountUuid;
 
-    @Schema(description = "제목", type = "string", example = "철학의 물음들 중간 대체 발표")
-    @NotBlank(message = "필수 입력 값입니다.")
-    private String title;
+    @Schema(description = "생성할 프레젠테이션의 정보", type = "PresentationDto")
+    private PresentationDto presentation;
 
-    @Schema(description = "개요", type = "string", example = "파스칼 내기 논증의 한계와 가능한 대안에 대한 논증")
-    @NotBlank(message = "필수 입력 값입니다.")
-    private String outline;
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PresentationDto {
 
-    @Schema(description = "잘 하고 싶은 부분", type = "string", example = "논리를 뒷받침하는 근거를 차례로 나열하며 주장을 전개하기")
-    @NotBlank(message = "필수 입력 값입니다.")
-    private String checkpoint;
+        @Schema(description = "제목", type = "string", example = "중간 시험 대체 발표")
+        protected String title;
+        @Schema(description = "개요", type = "string", example = "정렬 알고리즘 각각의 시간 복잡도 및 공간 복잡도 분석")
+        protected String outline;
+        @Schema(description = "잘 하고 싶은 점", type = "string", example = "각각의 장단점이 잘 부각되도록, 구체적인 예시와 함께 설명하기")
+        protected String checkpoint;
+    }
 }

@@ -12,7 +12,7 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class UserSignupDto {
+public class UserSignupReqDto {
 
     @Schema(description = "닉네임", type = "string", example = "박유빈")
     @NotBlank(message = "닉네임은 필수 입력 값입니다.")
