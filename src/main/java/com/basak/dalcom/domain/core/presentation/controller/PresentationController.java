@@ -1,7 +1,7 @@
 package com.basak.dalcom.domain.core.presentation.controller;
 
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateDto;
-import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationDto;
+import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationRespDto;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.service.PresentationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -38,20 +38,20 @@ public class PresentationController {
         description = "새 프레젠테이션 생성을 수행하는 API"
     )
     @ApiResponse(responseCode = "201", description = "프레젠테이션 생성 성공",
-        content = @Content(schema = @Schema(implementation = PresentationDto.class)))
+        content = @Content(schema = @Schema(implementation = PresentationRespDto.class)))
     @ApiResponse(responseCode = "404", description = "전달된 uuid를 가지는 사용자가 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
     @PostMapping("")
-    public ResponseEntity<PresentationDto> createPresentation(
+    public ResponseEntity<PresentationRespDto> createPresentation(
         @Valid @RequestBody PresentationCreateDto dto) {
-        dto.getPresentation().setIdNull();
-
+        PresentationCreateDto.PresentationDto presentationDto = dto.getPresentation();
         UUID uuid = UUID.fromString(dto.getAccountUuid());
+
         Presentation presentation = presentationService
-            .createPresentation(uuid, dto.getPresentation());
+            .createPresentation(uuid, presentationDto.toServiceDto());
 
         return new ResponseEntity<>(
-            new PresentationDto(presentation),
+            new PresentationRespDto(presentation),
             HttpStatus.CREATED
         );
     }
@@ -61,17 +61,17 @@ public class PresentationController {
         description = "요청된 uuid를 가지는 계정이 생성한 모든 프레젠테이션 목록을 반환하는 API"
     )
     @ApiResponse(responseCode = "200", description = "조회 성공",
-        content = @Content(array = @ArraySchema(schema = @Schema(implementation = PresentationDto.class))))
+        content = @Content(array = @ArraySchema(schema = @Schema(implementation = PresentationRespDto.class))))
     @ApiResponse(responseCode = "404", description = "전달된 uuid를 가지는 사용자가 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
     @GetMapping("")
-    public ResponseEntity<List<PresentationDto>> getOwnPresentations(
+    public ResponseEntity<List<PresentationRespDto>> getOwnPresentations(
         @RequestParam(value = "account-uuid") String accountUuid) {
         UUID uuid = UUID.fromString(accountUuid);
 
-        List<PresentationDto> presentationDtoList = presentationService
+        List<PresentationRespDto> presentationDtoList = presentationService
             .getPresentationsByAccountUuid(uuid).stream()
-            .map(PresentationDto::new)
+            .map(PresentationRespDto::new)
             .toList();
         return new ResponseEntity<>(presentationDtoList, HttpStatus.OK);
     }
