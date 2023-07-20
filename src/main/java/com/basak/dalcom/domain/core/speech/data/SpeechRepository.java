@@ -15,10 +15,13 @@ public interface SpeechRepository extends JpaRepository<Speech, Integer> {
     @Modifying
     @Transactional
     @Query("update Speech e set e.sttScript=:sttScript where e.id=:speechId")
-    void updateSttScriptById(@Param("speechId") Integer speechId, @Param("sttScript") String sttScript);
+    void updateSttScriptById(@Param("speechId") Integer speechId,
+        @Param("sttScript") String sttScript);
 
 
     Optional<Speech> findSpeechByIdAndPresentationId(Integer speechId, Integer presentationId);
 
     List<Speech> findSpeechesByPresentationId(Integer presentationId);
+
+    boolean existsByIdAndPresentationId(Integer speechId, Integer presentationId);
 }

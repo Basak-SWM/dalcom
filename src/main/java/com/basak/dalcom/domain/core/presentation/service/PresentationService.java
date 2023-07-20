@@ -2,14 +2,14 @@ package com.basak.dalcom.domain.core.presentation.service;
 
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
-import com.basak.dalcom.domain.common.exception.HandledException;
-import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateDto;
+import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
+import com.basak.dalcom.domain.core.presentation.service.dto.PresentationDto;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
 import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @AllArgsConstructor
@@ -19,10 +19,9 @@ public class PresentationService {
     private final AccountService accountService;
     private final PresentationRepository presentationRepository;
 
-    public Presentation createPresentation(PresentationCreateDto dto) {
-        Account account = accountService.findUserAccountByUuid(dto.getAccountUuid())
-            .orElseThrow(
-                () -> new HandledException(HttpStatus.NOT_FOUND, "Presentation not found."));
+    public Presentation createPresentation(UUID accountUuid, PresentationDto dto) {
+        Account account = accountService.findUserAccountByUuid(accountUuid)
+            .orElseThrow(() -> new NotFoundException("Account"));
 
         UserProfile userProfile = account.getUserProfile();
 
@@ -38,11 +37,11 @@ public class PresentationService {
         return presentation;
     }
 
-    public List<Presentation> getPresentationsOf(String uuid) {
+    public List<Presentation> getPresentationsByAccountUuid(UUID uuid) {
         Account account = accountService.findUserAccountByUuid(uuid)
-            .orElseThrow(
-                () -> new HandledException(HttpStatus.NOT_FOUND, "Account not found."));
+            .orElseThrow(() -> new NotFoundException("Account"));
         UserProfile userProfile = account.getUserProfile();
-        return presentationRepository.findByUserProfile(userProfile);
+
+        return presentationRepository.findPresentationsByUserProfile(userProfile);
     }
 }

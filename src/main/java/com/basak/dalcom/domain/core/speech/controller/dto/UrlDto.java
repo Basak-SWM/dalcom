@@ -22,4 +22,6 @@ public class UrlDto {
     private URL convertToUrl(String stringUrl) throws MalformedURLException {
         return new URL(stringUrl);
     }
+
+
 }

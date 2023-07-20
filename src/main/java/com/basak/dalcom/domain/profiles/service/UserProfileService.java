@@ -26,6 +26,8 @@ public class UserProfileService {
             .build();
         userProfileRepository.save(userProfile);
 
+        account.setUserProfile(userProfile);
+
         return userProfile;
     }
 }
