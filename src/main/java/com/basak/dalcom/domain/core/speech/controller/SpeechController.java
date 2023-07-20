@@ -9,6 +9,7 @@ import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -160,6 +161,7 @@ public class SpeechController {
     }
 
 
+    @Hidden
     @PostMapping("/{speech-id}/clova-result-callback")
     public void clovaResultCallback(
         @PathVariable Integer speechId,
