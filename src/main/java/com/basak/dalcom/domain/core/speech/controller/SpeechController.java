@@ -42,7 +42,7 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "201", description = "스피치 생성 성공")
     @ApiResponse(responseCode = "404", description = "전달된 presentationId를 가지는 프레젠테이션이 존재하지 않는 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @PostMapping("")
     public ResponseEntity<SpeechDto> createSpeech(
         @Parameter(name = "presentation-id")
@@ -60,7 +60,7 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "200", description = "스피치 분석 시작 성공")
     @ApiResponse(responseCode = "404", description = "전달된 speechId 가지는 개체가 존재하지 않는 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @PostMapping("/{speech-id}/record-done")
     public ResponseEntity<String> speechRecordDone(
         @Parameter(name = "presentation-id")
@@ -80,7 +80,7 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "200", description = "Presigned URL 반환 성공")
     @ApiResponse(responseCode = "404", description = "전달된 presentationId를 가지는 프레젠테이션이 존재하지 않는 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @GetMapping("/{speech-id}/get-audio-segment-upload-url")
     public ResponseEntity<UrlDto> getAudioSegmentUploadPresignedUrl(
         @Parameter(name = "presentation-id")
@@ -100,7 +100,7 @@ public class SpeechController {
         description = "서버에서 발급한 Presigned URL로 업로드가 완료된 것으로 상태를 갱신하는 API"
     )
     @ApiResponse(responseCode = "201", description = "업로드 완료 처리 성공 (AudioSegment 생성 완료)",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @PostMapping("/{speech-id}/audio-segment-upload-complete")
     public ResponseEntity<Void> audioSegmentUploadComplete(
         @Parameter(name = "presentation-id")
@@ -121,7 +121,7 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공")
     @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @GetMapping("/{speech-id}")
     public ResponseEntity<SpeechDto> getSpeech(
         @Parameter(name = "presentation-id")
@@ -140,7 +140,7 @@ public class SpeechController {
     @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공",
         content = @Content(array = @ArraySchema(schema = @Schema(implementation = SpeechDto.class))))
     @ApiResponse(responseCode = "404", description = "해당 PresentationId를 가지는 스피치가 존재하지 않는 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @GetMapping("")
     public ResponseEntity<List<SpeechDto>> getSpeechList(
         @Parameter(name = "presentation-id")

@@ -40,7 +40,7 @@ public class PresentationController {
     @ApiResponse(responseCode = "201", description = "프레젠테이션 생성 성공",
         content = @Content(schema = @Schema(implementation = PresentationRespDto.class)))
     @ApiResponse(responseCode = "404", description = "전달된 uuid를 가지는 사용자가 존재하지 않는 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @PostMapping("")
     public ResponseEntity<PresentationRespDto> createPresentation(
         @Valid @RequestBody PresentationCreateDto dto) {
@@ -63,7 +63,7 @@ public class PresentationController {
     @ApiResponse(responseCode = "200", description = "조회 성공",
         content = @Content(array = @ArraySchema(schema = @Schema(implementation = PresentationRespDto.class))))
     @ApiResponse(responseCode = "404", description = "전달된 uuid를 가지는 사용자가 존재하지 않는 경우",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content)
     @GetMapping("")
     public ResponseEntity<List<PresentationRespDto>> getOwnPresentations(
         @RequestParam(value = "account-uuid") String accountUuid) {
