@@ -1,7 +1,6 @@
 package com.basak.dalcom.domain.core.presentation.controller;
 
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateDto;
-import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationCreateSuccessDto;
 import com.basak.dalcom.domain.core.presentation.controller.dto.PresentationDto;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.service.PresentationService;
@@ -12,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import java.util.UUID;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,17 +38,20 @@ public class PresentationController {
         description = "새 프레젠테이션 생성을 수행하는 API"
     )
     @ApiResponse(responseCode = "201", description = "프레젠테이션 생성 성공",
-        content = @Content(schema = @Schema(implementation = PresentationCreateDto.class)))
-    @ApiResponse(responseCode = "400", description = "Validation 실패",
-        content = @Content(schema = @Schema(implementation = Void.class)))
+        content = @Content(schema = @Schema(implementation = PresentationDto.class)))
     @ApiResponse(responseCode = "404", description = "전달된 uuid를 가지는 사용자가 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = Void.class)))
     @PostMapping("")
-    public ResponseEntity<PresentationCreateSuccessDto> createPresentation(
+    public ResponseEntity<PresentationDto> createPresentation(
         @Valid @RequestBody PresentationCreateDto dto) {
-        Presentation presentation = presentationService.createPresentation(dto);
+        dto.getPresentation().setIdNull();
+
+        UUID uuid = UUID.fromString(dto.getAccountUuid());
+        Presentation presentation = presentationService
+            .createPresentation(uuid, dto.getPresentation());
+
         return new ResponseEntity<>(
-            new PresentationCreateSuccessDto(presentation),
+            new PresentationDto(presentation),
             HttpStatus.CREATED
         );
     }
@@ -63,9 +66,11 @@ public class PresentationController {
         content = @Content(schema = @Schema(implementation = Void.class)))
     @GetMapping("")
     public ResponseEntity<List<PresentationDto>> getOwnPresentations(
-        @RequestParam(value = "account-uuid", required = true) String accountUuid) {
+        @RequestParam(value = "account-uuid") String accountUuid) {
+        UUID uuid = UUID.fromString(accountUuid);
+
         List<PresentationDto> presentationDtoList = presentationService
-            .getPresentationsByAccountUuid(accountUuid).stream()
+            .getPresentationsByAccountUuid(uuid).stream()
             .map(PresentationDto::new)
             .toList();
         return new ResponseEntity<>(presentationDtoList, HttpStatus.OK);

@@ -15,15 +15,6 @@ public class PresentationCreateDto {
     @NotBlank(message = "필수 입력 값입니다.")
     private String accountUuid;
 
-    @Schema(description = "제목", type = "string", example = "철학의 물음들 중간 대체 발표")
-    @NotBlank(message = "필수 입력 값입니다.")
-    private String title;
-
-    @Schema(description = "개요", type = "string", example = "파스칼 내기 논증의 한계와 가능한 대안에 대한 논증")
-    @NotBlank(message = "필수 입력 값입니다.")
-    private String outline;
-
-    @Schema(description = "잘 하고 싶은 부분", type = "string", example = "논리를 뒷받침하는 근거를 차례로 나열하며 주장을 전개하기")
-    @NotBlank(message = "필수 입력 값입니다.")
-    private String checkpoint;
+    @Schema(description = "생성할 프레젠테이션의 정보", type = "PresentationDto")
+    private NoIdPresentationDto presentation;
 }

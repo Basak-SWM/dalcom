@@ -51,8 +51,10 @@ public class AccountService {
         return account;
     }
 
-    public Optional<Account> findUserAccountByUuid(String uuid) {
-        Optional<Account> account = accountRepository.findByUuidAndRole(uuid, AccountRole.USER);
+    public Optional<Account> findUserAccountByUuid(UUID uuid) {
+        String stringUuid = uuid.toString();
+        Optional<Account> account = accountRepository
+            .findByUuidAndRole(stringUuid, AccountRole.USER);
         return account;
     }
 
