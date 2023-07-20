@@ -2,10 +2,10 @@ package com.basak.dalcom.domain.accounts.service;
 
 import static com.basak.dalcom.domain.accounts.service.validators.AccountFieldValidator.uniqueValueDuplicationCheck;
 
-import com.basak.dalcom.domain.accounts.controller.dto.UserSignupDto;
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.data.AccountRepository;
 import com.basak.dalcom.domain.accounts.data.AccountRole;
+import com.basak.dalcom.domain.accounts.service.dto.UserSignupDto;
 import com.basak.dalcom.domain.profiles.service.UserProfileService;
 import java.util.Optional;
 import java.util.UUID;

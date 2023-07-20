@@ -35,4 +35,14 @@ public class UserSignupDto {
 
     @Schema(description = "음성 데이터 활용 동의 여부", type = "boolean", example = "true")
     private Boolean voiceUsageAgreement;
+
+    public com.basak.dalcom.domain.accounts.service.dto.UserSignupDto toServiceDto() {
+        return com.basak.dalcom.domain.accounts.service.dto.UserSignupDto.builder()
+            .nickname(nickname)
+            .email(email)
+            .phoneNumber(phoneNumber)
+            .password(password)
+            .voiceUsageAgreement(voiceUsageAgreement)
+            .build();
+    }
 }
