@@ -36,7 +36,7 @@ public class PresentationService {
         return presentation;
     }
 
-    public List<Presentation> getPresentationsOf(String uuid) {
+    public List<Presentation> getPresentationsByAccountUuid(String uuid) {
         Account account = accountService.findUserAccountByUuid(uuid)
             .orElseThrow(() -> new NotFoundException("Account"));
         UserProfile userProfile = account.getUserProfile();

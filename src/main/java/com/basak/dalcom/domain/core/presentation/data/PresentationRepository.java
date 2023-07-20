@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PresentationRepository extends JpaRepository<Presentation, Integer> {
 
-    List<Presentation> findByUserProfile(UserProfile userProfile);
+    List<Presentation> findPresentationsByUserProfile(UserProfile userProfile);
 
     Presentation findPresentationById(Integer presentationId);
 

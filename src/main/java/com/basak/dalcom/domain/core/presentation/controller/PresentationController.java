@@ -54,7 +54,7 @@ public class PresentationController {
     }
 
     @Operation(
-        summary = "프레젠테이션 본인 목록 조회 API",
+        summary = "목록 조회 API",
         description = "요청된 uuid를 가지는 계정이 생성한 모든 프레젠테이션 목록을 반환하는 API"
     )
     @ApiResponse(responseCode = "200", description = "조회 성공",
@@ -63,11 +63,11 @@ public class PresentationController {
         content = @Content(schema = @Schema(implementation = Void.class)))
     @GetMapping("")
     public ResponseEntity<List<PresentationDto>> getOwnPresentations(
-        @RequestParam(value = "uuid", required = true) String accountUuid) {
-        List<Presentation> presentations = presentationService.getPresentationsOf(accountUuid);
-        List<PresentationDto> presentationDtos = presentations.stream()
+        @RequestParam(value = "account-uuid", required = true) String accountUuid) {
+        List<PresentationDto> presentationDtoList = presentationService
+            .getPresentationsByAccountUuid(accountUuid).stream()
             .map(PresentationDto::new)
             .toList();
-        return new ResponseEntity<>(presentationDtos, HttpStatus.OK);
+        return new ResponseEntity<>(presentationDtoList, HttpStatus.OK);
     }
 }
