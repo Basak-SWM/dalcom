@@ -48,8 +48,9 @@ public class SpeechService {
      * 최초 녹음 시작 시에 단일 Speech 생성하는 서비스
      */
     public Speech createSpeech(Integer presentationId) {
-        Presentation targetPresentation = presentationRepository.findPresentationById(
-            presentationId);
+        Presentation targetPresentation = presentationRepository
+            .findPresentationById(presentationId)
+            .orElseThrow(() -> new NotFoundException("Presentation"));
 
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
@@ -68,15 +69,15 @@ public class SpeechService {
             .orElseThrow(() -> new NotFoundException("Speech"));
     }
 
-    public Speech findSpeechByIdAndPresentationId(Integer speechId, Integer presentationId,
-        boolean withAudioSegments) {
+    public Speech findSpeechByIdAndPresentationId(
+        Integer speechId, Integer presentationId, boolean withPresignedAudioSegments) {
         Speech speech = speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
             .orElseThrow(() -> new NotFoundException("Speech"));
 
         speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
             .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
 
-        if (withAudioSegments) {
+        if (withPresignedAudioSegments) {
             List<AudioSegment> audioSegments = speech.getAudioSegments();
 
             for (AudioSegment audioSegment : audioSegments) {
@@ -123,5 +124,11 @@ public class SpeechService {
 
     public List<Speech> findSpeechesByPresentationId(Integer presentationId) {
         return speechRepository.findSpeechesByPresentationId(presentationId);
+    }
+
+    public void checkExistence(Integer presentationId, Integer speechId) {
+        if (!speechRepository.existsByIdAndPresentationId(speechId, presentationId)) {
+            throw new NotFoundException("Speech");
+        }
     }
 }
