@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
@@ -111,11 +112,11 @@ public class SpeechService {
     /**
      * Clova STT 분석 결과 수신해서 DB 저장
      */
+    @Transactional
     public void saveClovaResultToDB(Integer speechId, String dto) {
-        speechRepository.findById(speechId)
+        Speech speech = speechRepository.findById(speechId)
             .orElseThrow(() -> new NotFoundException("Speech"));
-
-        speechRepository.updateSttScriptById(speechId, dto);
+        speech.setSttScript(dto);
     }
 
     public URL getAudioSegmentUploadUrl(String key) {
