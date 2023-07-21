@@ -6,9 +6,11 @@ import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegmentDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.PresignedUrlReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
+import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,6 +26,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -160,6 +163,24 @@ public class SpeechController {
         return new ResponseEntity<>(new AudioSegmentRespDto(audioSegment), HttpStatus.CREATED);
     }
 
+    @Operation(summary = "스피치 정보 업데이트 API")
+    @ApiResponse(responseCode = "200", description = "업데이트 완료",
+        content = @Content(schema = @Schema(implementation = SpeechRespDto.class)))
+    @PatchMapping("/{speech-id}")
+    public ResponseEntity<SpeechRespDto> updateSpeech(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @RequestBody SpeechUpdateReqDto requestDto) {
+        SpeechUpdateDto serviceDto = new SpeechUpdateDto(
+            presentationId, speechId, requestDto.getUserSymbol()
+        );
+
+        Speech updatedSpeech = speechService.partialUpdate(serviceDto);
+
+        return new ResponseEntity<>(new SpeechRespDto(updatedSpeech), HttpStatus.OK);
+    }
 
     @Hidden
     @PostMapping("/{speech-id}/clova-result-callback")
