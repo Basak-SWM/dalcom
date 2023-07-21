@@ -8,6 +8,7 @@ import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
+import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
 import com.basak.dalcom.external_api.wasak.service.WasakService;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
@@ -111,11 +113,11 @@ public class SpeechService {
     /**
      * Clova STT 분석 결과 수신해서 DB 저장
      */
+    @Transactional
     public void saveClovaResultToDB(Integer speechId, String dto) {
-        speechRepository.findById(speechId)
+        Speech speech = speechRepository.findById(speechId)
             .orElseThrow(() -> new NotFoundException("Speech"));
-
-        speechRepository.updateSttScriptById(speechId, dto);
+        speech.setSttScript(dto);
     }
 
     public URL getAudioSegmentUploadUrl(String key) {
@@ -130,5 +132,18 @@ public class SpeechService {
         if (!speechRepository.existsByIdAndPresentationId(speechId, presentationId)) {
             throw new NotFoundException("Speech");
         }
+    }
+
+    @Transactional
+    public Speech partialUpdate(SpeechUpdateDto dto) {
+        Speech speech = speechRepository.findSpeechByIdAndPresentationId(
+            dto.getSpeechId(), dto.getPresentationId()
+        ).orElseThrow(() -> new NotFoundException("Speech"));
+
+        dto.getUserSymbol().ifPresent(userSymbol -> speech.setUserSymbol(
+            dto.getUserSymbol().get()
+        ));
+
+        return speech;
     }
 }
