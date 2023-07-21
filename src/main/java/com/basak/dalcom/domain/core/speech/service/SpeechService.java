@@ -8,6 +8,7 @@ import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
+import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
 import com.basak.dalcom.external_api.wasak.service.WasakService;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -131,5 +132,18 @@ public class SpeechService {
         if (!speechRepository.existsByIdAndPresentationId(speechId, presentationId)) {
             throw new NotFoundException("Speech");
         }
+    }
+
+    @Transactional
+    public Speech partialUpdate(SpeechUpdateDto dto) {
+        Speech speech = speechRepository.findSpeechByIdAndPresentationId(
+            dto.getSpeechId(), dto.getPresentationId()
+        ).orElseThrow(() -> new NotFoundException("Speech"));
+
+        dto.getUserSymbol().ifPresent(userSymbol -> speech.setUserSymbol(
+            dto.getUserSymbol().get()
+        ));
+
+        return speech;
     }
 }

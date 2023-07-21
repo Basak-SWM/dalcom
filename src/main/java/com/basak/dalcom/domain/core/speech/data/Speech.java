@@ -42,9 +42,11 @@ public class Speech extends BaseEntity {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String sttScript;
 
+    @Setter
     @Column(columnDefinition = "MEDIUMTEXT")
     private String userSymbol;
 
+    @Setter
     @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AudioSegment> audioSegments;
 
