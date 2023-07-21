@@ -26,14 +26,16 @@ public class SpeechRespDto {
         this.id = speech.getId();
         this.sttResult = speech.getSttScript();
         this.userSymbol = speech.getUserSymbol();
-        this.audioSegments = speech.getAudioSegments().stream()
-            .map(audioSegment -> audioSegment.getFullAudioS3Url())
-            .map(url -> {
-                try {
-                    return new URL(url);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }).toList();
+        if (speech.getAudioSegments() != null) {
+            this.audioSegments = speech.getAudioSegments().stream()
+                .map(audioSegment -> audioSegment.getFullAudioS3Url())
+                .map(url -> {
+                    try {
+                        return new URL(url);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }).toList();
+        }
     }
 }
