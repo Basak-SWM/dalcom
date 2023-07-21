@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Builder
@@ -37,6 +38,7 @@ public class Speech extends BaseEntity {
 
     private String fullAudioS3Url;
 
+    @Setter
     @Column(columnDefinition = "MEDIUMTEXT")
     private String sttScript;
 
