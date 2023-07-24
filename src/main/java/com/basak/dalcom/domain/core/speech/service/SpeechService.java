@@ -76,24 +76,24 @@ public class SpeechService {
         Speech speech = speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
             .orElseThrow(() -> new NotFoundException("Speech"));
 
-        speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
-            .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
-
-        if (withPresignedAudioSegments) {
-            List<AudioSegment> audioSegments = speech.getAudioSegments();
-
-            for (AudioSegment audioSegment : audioSegments) {
-                try {
-                    URL presignedUrl = presignedURLService.getPresignedURLForDownload(
-                        new URL(audioSegment.getFullAudioS3Url()));
-                    audioSegment.updateAsPresignedUrl(presignedUrl.toString());
-                } catch (MalformedURLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            speech.setPresignedAudioSegments(audioSegments);
-        }
+//        speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
+//            .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
+//
+//        if (withPresignedAudioSegments) {
+//            List<AudioSegment> audioSegments = speech.getAudioSegments();
+//
+//            for (AudioSegment audioSegment : audioSegments) {
+//                try {
+//                    URL presignedUrl = presignedURLService.getPresignedURLForDownload(
+//                        new URL(audioSegment.getFullAudioS3Url()));
+//                    audioSegment.updateAsPresignedUrl(presignedUrl.toString());
+//                } catch (MalformedURLException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//
+//            speech.setPresignedAudioSegments(audioSegments);
+//        }
 
         return speech;
     }
