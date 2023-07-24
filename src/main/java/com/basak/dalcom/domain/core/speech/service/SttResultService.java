@@ -1,11 +1,13 @@
 package com.basak.dalcom.domain.core.speech.service;
 
 
+import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.analysis_record.data.AnalysisRecordType;
 import com.basak.dalcom.domain.core.analysis_record.service.AnalysisRecordService;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SttResult;
 import com.basak.dalcom.domain.core.speech.data.SttResultRepository;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,5 +33,13 @@ public class SttResultService {
         analysisRecordService.createAnalysisRecordOf(speech, AnalysisRecordType.STT);
 
         return sttResult;
+    }
+
+    public Optional<SttResult> getSttResultOf(Speech speech) {
+        if (!speech.getRecordDone()) {
+            throw new ConflictException("Record is not done yet.");
+        } else {
+            return sttResultRepository.findBySpeech(speech);
+        }
     }
 }

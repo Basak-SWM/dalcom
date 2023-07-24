@@ -1,5 +1,7 @@
 package com.basak.dalcom.domain.core.speech.data;
 
+import com.basak.dalcom.domain.common.BaseEntity;
+import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -8,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +23,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "stt_result")
-public class SttResult {
+public class SttResult extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,4 +36,7 @@ public class SttResult {
     @Setter
     @Column(columnDefinition = "MEDIUMTEXT")
     private String body;
+
+    @Transient
+    private LocalDateTime lastModifiedDate;
 }

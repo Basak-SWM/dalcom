@@ -10,8 +10,10 @@ import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegment
 import com.basak.dalcom.domain.core.speech.controller.dto.PresignedUrlReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.SttResultRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
+import com.basak.dalcom.domain.core.speech.data.SttResult;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
 import com.basak.dalcom.domain.core.speech.service.SttResultService;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
@@ -26,6 +28,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -218,6 +221,34 @@ public class SpeechController {
         Map<AnalysisRecordType, Boolean> records = analysisRecordService
             .getAnalysisRecordsOf(speech);
         return new ResponseEntity<>(records, HttpStatus.OK);
+    }
+
+    @Operation(
+        summary = "STT 처리 결과 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = SttResultRespDto.class)))
+    @ApiResponse(responseCode = "202", description = "아직 처리 중인 경우")
+    @ApiResponse(responseCode = "404", description = "전달된 ID를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "연습 종료 처리 되지 않은 스피치인 경우",
+        content = @Content)
+    @GetMapping("/{speech-id}/stt")
+    public ResponseEntity<SttResultRespDto> getSttResult(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+
+        Optional<SttResult> result = sttResultService.getSttResultOf(speech);
+        if (result.isPresent()) {
+            return new ResponseEntity<>(new SttResultRespDto(result.get()), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }
     }
 
 
