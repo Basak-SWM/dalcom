@@ -33,6 +33,7 @@ dependencies {
     implementation("org.apache.httpcomponents:httpcore:4.4.15")
     implementation("org.apache.httpcomponents:httpclient:4.5.14")
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+    implementation("io.sentry:sentry-spring-boot-starter:6.16.0")
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("com.mysql:mysql-connector-j")
     annotationProcessor("org.projectlombok:lombok")
