@@ -62,4 +62,8 @@ public class Speech extends BaseEntity {
     public void setPresignedAudioSegments(List<AudioSegment> presignedAudioSegments) {
         this.audioSegments = presignedAudioSegments;
     }
+
+    public void setRecordDone() {
+        this.recordDone = true;
+    }
 }

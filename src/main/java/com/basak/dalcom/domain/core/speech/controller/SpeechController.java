@@ -1,5 +1,6 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
+import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.audio_segment.controller.dto.AudioSegmentRespDto;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
@@ -106,6 +107,8 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "404", description = "전달된 speech-id를 가지는 스피치가 존재하지 않는 경우",
         content = @Content)
+    @ApiResponse(responseCode = "409", description = "이미 녹음 완료 처리가 요청된 경우",
+        content = @Content)
     @PostMapping("/{speech-id}/record-done")
     public ResponseEntity<Void> speechRecordDone(
         @Parameter(name = "presentation-id")
@@ -113,8 +116,15 @@ public class SpeechController {
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
         speechService.checkExistence(presentationId, speechId);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
 
-        speechService.speechRecordDoneAndStartAnalyze(presentationId, speechId);
+        if (speech.getRecordDone()) {
+            throw new ConflictException("Already record done.");
+        }
+
+        speechService.speechRecordDoneAndStartAnalyze(speech);
         return new ResponseEntity<>(
             HttpStatus.OK
         );
