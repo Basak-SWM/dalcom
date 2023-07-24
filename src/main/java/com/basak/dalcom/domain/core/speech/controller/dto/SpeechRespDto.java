@@ -13,8 +13,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class SpeechRespDto {
 
-    @Schema(description = "STT 결과 (Clova 응답 Raw 저장값)")
-    private final String sttResult;
     @Schema(description = "사용자 기호 Raw 저장값")
     private final String userSymbol;
     @Schema(description = "생성된 speech의 id")
@@ -24,7 +22,6 @@ public class SpeechRespDto {
 
     public SpeechRespDto(Speech speech) {
         this.id = speech.getId();
-        this.sttResult = speech.getSttScript();
         this.userSymbol = speech.getUserSymbol();
         if (speech.getAudioSegments() != null) {
             this.audioSegments = speech.getAudioSegments().stream()
