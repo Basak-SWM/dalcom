@@ -35,4 +35,12 @@ public class AnalysisRecordService {
 
         return result;
     }
+
+    public AnalysisRecord createAnalysisRecordOf(Speech speech, AnalysisRecordType type) {
+        AnalysisRecord record = AnalysisRecord.builder()
+            .speech(speech)
+            .type(type)
+            .build();
+        return analysisRecordRepository.save(record);
+    }
 }
