@@ -13,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,15 +41,14 @@ public class Speech extends BaseEntity {
 
     @Setter
     @Column(columnDefinition = "MEDIUMTEXT")
-    private String sttScript;
-
-    @Setter
-    @Column(columnDefinition = "MEDIUMTEXT")
     private String userSymbol;
 
     @Setter
     @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AudioSegment> audioSegments;
+
+    @OneToOne(mappedBy = "speech")
+    private SttResult sttResult;
 
     public void setPresignedAudioSegments(List<AudioSegment> presignedAudioSegments) {
         this.audioSegments = presignedAudioSegments;

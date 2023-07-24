@@ -110,15 +110,6 @@ public class SpeechService {
         return presentationId + "/" + speechId + "/full_audio." + ext;
     }
 
-    /**
-     * Clova STT 분석 결과 수신해서 DB 저장
-     */
-    @Transactional
-    public void saveClovaResultToDB(Integer speechId, String dto) {
-        Speech speech = speechRepository.findById(speechId)
-            .orElseThrow(() -> new NotFoundException("Speech"));
-        speech.setSttScript(dto);
-    }
 
     public URL getAudioSegmentUploadUrl(String key) {
         return presignedURLService.getPresignedURLForUpload(key);
