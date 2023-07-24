@@ -10,6 +10,7 @@ import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
+import com.basak.dalcom.domain.core.speech.service.SttResultService;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,6 +42,7 @@ public class SpeechController {
 
     private final SpeechService speechService;
     private final AudioSegmentService audioSegmentService;
+    private final SttResultService sttResultService;
 
     @Operation(
         summary = "스피치 생성 API",
@@ -186,7 +188,7 @@ public class SpeechController {
     @PostMapping("/{speech-id}/clova-result-callback")
     public void clovaResultCallback(
         @PathVariable Integer speechId,
-        @RequestBody String requestDto) {
-        speechService.saveClovaResultToDB(speechId, requestDto);
+        @RequestBody String body) {
+        sttResultService.createSttResult(speechId, body);
     }
 }
