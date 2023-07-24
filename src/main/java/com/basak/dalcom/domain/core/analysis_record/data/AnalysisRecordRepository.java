@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.core.analysis.data;
+package com.basak.dalcom.domain.core.analysis_record.data;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -1,4 +1,4 @@
-package com.basak.dalcom.domain.core.analysis.data;
+package com.basak.dalcom.domain.core.analysis_record.data;
 
 import com.basak.dalcom.domain.common.BaseEntity;
 import com.basak.dalcom.domain.core.speech.data.Speech;

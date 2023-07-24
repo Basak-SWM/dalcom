@@ -1,7 +1,7 @@
 package com.basak.dalcom.domain.core.speech.data;
 
 import com.basak.dalcom.domain.common.BaseEntity;
-import com.basak.dalcom.domain.core.analysis.data.AnalysisRecord;
+import com.basak.dalcom.domain.core.analysis_record.data.AnalysisRecord;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import java.util.List;
