@@ -1,6 +1,8 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
+import com.basak.dalcom.domain.core.analysis_record.data.AnalysisRecordType;
+import com.basak.dalcom.domain.core.analysis_record.service.AnalysisRecordService;
 import com.basak.dalcom.domain.core.audio_segment.controller.dto.AudioSegmentRespDto;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
@@ -23,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -44,6 +47,7 @@ public class SpeechController {
     private final SpeechService speechService;
     private final AudioSegmentService audioSegmentService;
     private final SttResultService sttResultService;
+    private final AnalysisRecordService analysisRecordService;
 
     @Operation(
         summary = "스피치 생성 API",
@@ -193,6 +197,29 @@ public class SpeechController {
 
         return new ResponseEntity<>(new SpeechRespDto(updatedSpeech), HttpStatus.OK);
     }
+
+    @Operation(
+        summary = "분석 결과 처리 상태 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @ApiResponse(responseCode = "404", description = "전달된 ID를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "연습 종료 처리 되지 않은 스피치인 경우",
+        content = @Content)
+    @GetMapping("/{speech-id}/analysis-records")
+    public ResponseEntity<Map<AnalysisRecordType, Boolean>> getAnalysisRecords(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+        Map<AnalysisRecordType, Boolean> records = analysisRecordService
+            .getAnalysisRecordsOf(speech);
+        return new ResponseEntity<>(records, HttpStatus.OK);
+    }
+
 
     @Hidden
     @PostMapping("/{speech-id}/clova-result-callback")
