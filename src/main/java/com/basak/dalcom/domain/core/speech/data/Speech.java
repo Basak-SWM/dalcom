@@ -21,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Builder
@@ -39,6 +40,10 @@ public class Speech extends BaseEntity {
     private Presentation presentation;
 
     private String fullAudioS3Url;
+
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private Boolean recordDone;
 
     @Setter
     @Column(columnDefinition = "MEDIUMTEXT")
