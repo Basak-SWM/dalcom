@@ -19,10 +19,13 @@ public class SpeechRespDto {
     private Integer id;
     @Schema(description = "정렬된 AudioSegment Presigned URL 목록")
     private List<URL> audioSegments;
+    @Schema(description = "녹음 종료 여부")
+    private Boolean recordDone;
 
     public SpeechRespDto(Speech speech) {
         this.id = speech.getId();
         this.userSymbol = speech.getUserSymbol();
+        this.recordDone = speech.getRecordDone();
         if (speech.getAudioSegments() != null) {
             this.audioSegments = speech.getAudioSegments().stream()
                 .map(audioSegment -> audioSegment.getFullAudioS3Url())

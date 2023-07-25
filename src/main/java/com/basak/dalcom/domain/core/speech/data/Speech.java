@@ -1,6 +1,7 @@
 package com.basak.dalcom.domain.core.speech.data;
 
 import com.basak.dalcom.domain.common.BaseEntity;
+import com.basak.dalcom.domain.core.analysis_record.data.AnalysisRecord;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import java.util.List;
@@ -20,6 +21,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Builder
@@ -39,6 +41,10 @@ public class Speech extends BaseEntity {
 
     private String fullAudioS3Url;
 
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private Boolean recordDone;
+
     @Setter
     @Column(columnDefinition = "MEDIUMTEXT")
     private String userSymbol;
@@ -47,10 +53,17 @@ public class Speech extends BaseEntity {
     @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AudioSegment> audioSegments;
 
+    @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnalysisRecord> analysisRecords;
+
     @OneToOne(mappedBy = "speech")
     private SttResult sttResult;
 
     public void setPresignedAudioSegments(List<AudioSegment> presignedAudioSegments) {
         this.audioSegments = presignedAudioSegments;
+    }
+
+    public void setRecordDone() {
+        this.recordDone = true;
     }
 }

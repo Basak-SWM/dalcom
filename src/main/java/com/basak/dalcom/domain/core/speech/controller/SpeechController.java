@@ -1,5 +1,8 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
+import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
+import com.basak.dalcom.domain.core.analysis_record.data.AnalysisRecordType;
+import com.basak.dalcom.domain.core.analysis_record.service.AnalysisRecordService;
 import com.basak.dalcom.domain.core.audio_segment.controller.dto.AudioSegmentRespDto;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
@@ -7,8 +10,10 @@ import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegment
 import com.basak.dalcom.domain.core.speech.controller.dto.PresignedUrlReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.SttResultRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
+import com.basak.dalcom.domain.core.speech.data.SttResult;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
 import com.basak.dalcom.domain.core.speech.service.SttResultService;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
@@ -22,6 +27,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -43,6 +50,7 @@ public class SpeechController {
     private final SpeechService speechService;
     private final AudioSegmentService audioSegmentService;
     private final SttResultService sttResultService;
+    private final AnalysisRecordService analysisRecordService;
 
     @Operation(
         summary = "스피치 생성 API",
@@ -106,6 +114,8 @@ public class SpeechController {
     )
     @ApiResponse(responseCode = "404", description = "전달된 speech-id를 가지는 스피치가 존재하지 않는 경우",
         content = @Content)
+    @ApiResponse(responseCode = "409", description = "이미 녹음 완료 처리가 요청된 경우",
+        content = @Content)
     @PostMapping("/{speech-id}/record-done")
     public ResponseEntity<Void> speechRecordDone(
         @Parameter(name = "presentation-id")
@@ -113,8 +123,15 @@ public class SpeechController {
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
         speechService.checkExistence(presentationId, speechId);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
 
-        speechService.speechRecordDoneAndStartAnalyze(presentationId, speechId);
+        if (speech.getRecordDone()) {
+            throw new ConflictException("Already record done.");
+        }
+
+        speechService.speechRecordDoneAndStartAnalyze(speech);
         return new ResponseEntity<>(
             HttpStatus.OK
         );
@@ -183,6 +200,57 @@ public class SpeechController {
 
         return new ResponseEntity<>(new SpeechRespDto(updatedSpeech), HttpStatus.OK);
     }
+
+    @Operation(
+        summary = "분석 결과 처리 상태 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @ApiResponse(responseCode = "404", description = "전달된 ID를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "연습 종료 처리 되지 않은 스피치인 경우",
+        content = @Content)
+    @GetMapping("/{speech-id}/analysis-records")
+    public ResponseEntity<Map<AnalysisRecordType, Boolean>> getAnalysisRecords(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+        Map<AnalysisRecordType, Boolean> records = analysisRecordService
+            .getAnalysisRecordsOf(speech);
+        return new ResponseEntity<>(records, HttpStatus.OK);
+    }
+
+    @Operation(
+        summary = "STT 처리 결과 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = SttResultRespDto.class)))
+    @ApiResponse(responseCode = "202", description = "아직 처리 중인 경우")
+    @ApiResponse(responseCode = "404", description = "전달된 ID를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "연습 종료 처리 되지 않은 스피치인 경우",
+        content = @Content)
+    @GetMapping("/{speech-id}/stt")
+    public ResponseEntity<SttResultRespDto> getSttResult(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+
+        Optional<SttResult> result = sttResultService.getSttResultOf(speech);
+        if (result.isPresent()) {
+            return new ResponseEntity<>(new SttResultRespDto(result.get()), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }
+    }
+
 
     @Hidden
     @PostMapping("/{speech-id}/clova-result-callback")
