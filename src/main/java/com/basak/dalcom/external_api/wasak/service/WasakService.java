@@ -18,10 +18,10 @@ public class WasakService {
 
     @SneakyThrows
     public void requestAnalysis1(Integer speechId,
-        URL callbackUrl, URL uploadUrl, URL downloadUrl) {
+        URL callbackUrl, String uploadKey, URL downloadUrl) {
         Map<String, String> body = new HashMap<>();
         body.put("callback_url", callbackUrl.toString());
-        body.put("upload_url", uploadUrl.toString());
+        body.put("upload_key", uploadKey);
         body.put("download_url", downloadUrl.toString());
 
         ResponseEntity<Void> response = apiService.createResource(
