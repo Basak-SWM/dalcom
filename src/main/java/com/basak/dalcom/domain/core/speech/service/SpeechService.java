@@ -60,6 +60,7 @@ public class SpeechService {
 
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
+            .recordDone(false)
             .build();
 
         speechRepository.save(speech);
