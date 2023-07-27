@@ -226,8 +226,8 @@ public class SpeechController {
     @Hidden
     @PostMapping("/{speech-id}/clova-result-callback")
     public void clovaResultCallback(
-        @PathVariable Integer presentationId,
-        @PathVariable Integer speechId,
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @PathVariable(name = "speech-id") Integer speechId,
         @RequestBody String body) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false

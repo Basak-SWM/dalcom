@@ -1,5 +1,6 @@
 package com.basak.dalcom.domain.core.analysis_result.data;
 
+import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import java.net.URL;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 public class AnalysisResultRepositoryImpl implements AnalysisResultRepository {
 
     private final PresignedURLService presignedURLService;
+    private final S3Service s3Service;
 
     @Override
     public List<AnalysisResult> getAnalysisResultsOf(Speech speech) {
@@ -44,6 +46,8 @@ public class AnalysisResultRepositoryImpl implements AnalysisResultRepository {
 
     @Override
     public void save(Speech speech, AnalysisType type, String body) {
-
+        String prefix = getPrefixOf(speech);
+        String key = String.format("%s/%s.json", prefix, type.getValue());
+        s3Service.uploadAsJson(key, body);
     }
 }
