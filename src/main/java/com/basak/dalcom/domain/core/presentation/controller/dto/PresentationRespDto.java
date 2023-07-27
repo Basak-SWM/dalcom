@@ -2,12 +2,19 @@ package com.basak.dalcom.domain.core.presentation.controller.dto;
 
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.format.DateTimeFormatter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Getter
 @AllArgsConstructor
 public class PresentationRespDto {
+
+    private static final String DT_FORMAT_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ofPattern(
+        DT_FORMAT_PATTERN
+    );
 
     @Schema(description = "id", type = "integer", example = "1")
     private final Integer id;
@@ -17,11 +24,15 @@ public class PresentationRespDto {
     private final String outline;
     @Schema(description = "잘 하고 싶은 점", type = "string", example = "각각의 장단점이 잘 부각되도록, 구체적인 예시와 함께 설명하기")
     private final String checkpoint;
+    @Schema(description = "생성 일시", type = "LocalDateTime")
+    @DateTimeFormat(pattern = DT_FORMAT_PATTERN)
+    private final String createdDate;
 
     public PresentationRespDto(Presentation presentation) {
         this.id = presentation.getId();
         this.title = presentation.getTitle();
         this.outline = presentation.getOutline();
         this.checkpoint = presentation.getCheckpoint();
+        this.createdDate = presentation.getCreatedDate().format(DT_FORMAT);
     }
 }
