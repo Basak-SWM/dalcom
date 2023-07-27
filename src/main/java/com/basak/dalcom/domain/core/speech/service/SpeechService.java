@@ -41,10 +41,9 @@ public class SpeechService {
         String fullAudioKey = getFullAudioUploadKey(
             speech.getPresentation().getId(), speech.getId(), "mp3"
         );
-        URL uploadUrl = presignedURLService.getPresignedURLForUpload(fullAudioKey);
         URL downloadUrl = presignedURLService.getPresignedURLForDownload(fullAudioKey);
 
-        wasakService.requestAnalysis1(speech.getId(), callbackUrl, uploadUrl, downloadUrl);
+        wasakService.requestAnalysis1(speech.getId(), callbackUrl, fullAudioKey, downloadUrl);
 
         speech.setRecordDone();
     }
@@ -60,6 +59,7 @@ public class SpeechService {
 
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
+            .recordDone(false)
             .build();
 
         speechRepository.save(speech);
