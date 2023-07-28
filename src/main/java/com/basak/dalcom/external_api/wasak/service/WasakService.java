@@ -24,6 +24,10 @@ public class WasakService {
         body.put("upload_key", uploadKey);
         body.put("download_url", downloadUrl.toString());
 
+        System.out.println("callback_url: " + callbackUrl);
+        System.out.println("upload_key: " + uploadKey);
+        System.out.println("download_url: " + downloadUrl);
+
         ResponseEntity<Void> response = apiService.createResource(
             "/v1/speech/" + speechId + "/analysis-1", body, null);
 
