@@ -48,6 +48,13 @@ public class SpeechService {
         speech.setRecordDone();
     }
 
+    /**
+     * STT 처리 완료 시그널 발생시 이를 음성 분석 서버에 전송하는 서비스
+     */
+    public void sttDoneAndStartAnalyze2(Speech speech) {
+        wasakService.requestAnalysis2(speech.getPresentation().getId(), speech.getId());
+    }
+
 
     /**
      * 최초 녹음 시작 시에 단일 Speech 생성하는 서비스

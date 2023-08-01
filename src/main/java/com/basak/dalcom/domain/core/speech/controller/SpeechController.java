@@ -233,5 +233,6 @@ public class SpeechController {
             speechId, presentationId, false
         );
         analysisResultService.createAnalysisResultOf(speech, AnalysisType.STT, body);
+        speechService.sttDoneAndStartAnalyze2(speech);
     }
 }
