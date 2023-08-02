@@ -13,6 +13,12 @@ public class S3Service {
     private final S3Config config;
     private final AmazonS3 amazonS3;
 
+    public static String getKeyFromUrl(String stringUrl) {
+        String[] split = stringUrl.split("amazonaws.com/");
+        String key = split[1];
+        return key;
+    }
+
     public boolean isExist(String key) {
         return isExist(config.DEFAULT_BUCKET_NAME, key);
     }
@@ -28,5 +34,9 @@ public class S3Service {
     public S3Object download(String key) {
         S3Object result = amazonS3.getObject(config.DEFAULT_BUCKET_NAME, key);
         return result;
+    }
+
+    public void deleteByKey(String key) {
+        amazonS3.deleteObject(config.DEFAULT_BUCKET_NAME, key);
     }
 }
