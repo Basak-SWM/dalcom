@@ -8,6 +8,7 @@ import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegmentDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.PresignedUrlReqDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.SpeechCreateDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
@@ -25,10 +26,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,8 +60,10 @@ public class SpeechController {
     @PostMapping("")
     public ResponseEntity<SpeechRespDto> createSpeech(
         @Parameter(name = "presentation-id")
-        @PathVariable(name = "presentation-id") Integer presentationId) {
-        Speech speech = speechService.createSpeech(presentationId);
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @RequestBody SpeechCreateDto dto) {
+        Optional<Integer> refSpeechId = Optional.ofNullable(dto.getReferenceSpeechId());
+        Speech speech = speechService.createSpeech(presentationId, refSpeechId);
         return new ResponseEntity<>(
             new SpeechRespDto(speech),
             HttpStatus.CREATED
@@ -233,5 +238,21 @@ public class SpeechController {
             speechId, presentationId, false
         );
         analysisResultService.createAnalysisResultOf(speech, AnalysisType.STT, body);
+        speechService.sttDoneAndStartAnalyze2(speech);
+    }
+
+    @Operation(
+        summary = "스피치 삭제 API"
+    )
+    @ApiResponse(responseCode = "204", description = "스피치 삭제 성공",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @DeleteMapping("/{speech-id}")
+    public ResponseEntity<Void> deleteSpeech(
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @PathVariable(name = "speech-id") Integer speechId) {
+        speechService.deleteById(speechId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
