@@ -192,6 +192,10 @@ public class SpeechService {
         String key = speech.getPresentation().getId() + "/" + speech.getId() + "/full_audio.mp3";
         s3Service.deleteByKey(key);
 
+        speech.getReferencingSpeeches().forEach(referencingSpeech -> {
+            referencingSpeech.disconnectReferenceSpeech();
+        });
+
         // 스피치 삭제
         speechRepository.deleteById(speechId);
     }

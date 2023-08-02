@@ -62,4 +62,8 @@ public class Speech extends BaseEntity {
     public void setRecordDone() {
         this.recordDone = true;
     }
+
+    public void disconnectReferenceSpeech() {
+        this.referenceSpeech = null;
+    }
 }
