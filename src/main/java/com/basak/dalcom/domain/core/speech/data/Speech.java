@@ -7,6 +7,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -36,6 +37,13 @@ public class Speech extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "presentation_id", nullable = false)
     private Presentation presentation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reference_speech_id")
+    private Speech referenceSpeech;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "referenceSpeech")
+    private List<Speech> referencingSpeeches;
 
     private String fullAudioS3Url;
 
