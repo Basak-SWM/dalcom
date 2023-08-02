@@ -3,6 +3,7 @@ package com.basak.dalcom.domain.core.speech.service;
 import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.config.NCPConfig;
+import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
@@ -17,6 +18,7 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -66,14 +68,26 @@ public class SpeechService {
     /**
      * 최초 녹음 시작 시에 단일 Speech 생성하는 서비스
      */
-    public Speech createSpeech(Integer presentationId) {
+    public Speech createSpeech(Integer presentationId, Optional<Integer> referenceSpeechId) {
         Presentation targetPresentation = presentationRepository
             .findPresentationById(presentationId)
             .orElseThrow(() -> new NotFoundException("Presentation"));
 
+        Speech referenceSpeech = null;
+        if (referenceSpeechId.isPresent()) {
+            referenceSpeech = speechRepository
+                .findSpeechById(referenceSpeechId.get())
+                .orElseThrow(() -> new NotFoundException("Reference Speech"));
+        }
+
+        if (referenceSpeech != null && !referenceSpeech.getRecordDone()) {
+            throw new ConflictException("Reference Speech is not record done");
+        }
+
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
             .recordDone(false)
+            .referenceSpeech(referenceSpeech)
             .build();
 
         speechRepository.save(speech);
@@ -177,6 +191,10 @@ public class SpeechService {
         // full audio 삭제
         String key = speech.getPresentation().getId() + "/" + speech.getId() + "/full_audio.mp3";
         s3Service.deleteByKey(key);
+
+        speech.getReferencingSpeeches().forEach(referencingSpeech -> {
+            referencingSpeech.disconnectReferenceSpeech();
+        });
 
         // 스피치 삭제
         speechRepository.deleteById(speechId);

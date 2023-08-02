@@ -21,6 +21,8 @@ public class SpeechRespDto {
     private List<URL> audioSegments;
     @Schema(description = "녹음 종료 여부")
     private Boolean recordDone;
+    @Schema(description = "참조 speech의 id")
+    private Integer refSpeechId = null;
 
     public SpeechRespDto(Speech speech) {
         this.id = speech.getId();
@@ -36,6 +38,9 @@ public class SpeechRespDto {
                         throw new RuntimeException(e);
                     }
                 }).toList();
+        }
+        if (speech.getReferenceSpeech() != null) {
+            this.refSpeechId = speech.getReferenceSpeech().getId();
         }
     }
 }

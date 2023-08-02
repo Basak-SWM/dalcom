@@ -8,6 +8,7 @@ import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegmentDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.PresignedUrlReqDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.SpeechCreateDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
@@ -25,6 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -58,8 +60,10 @@ public class SpeechController {
     @PostMapping("")
     public ResponseEntity<SpeechRespDto> createSpeech(
         @Parameter(name = "presentation-id")
-        @PathVariable(name = "presentation-id") Integer presentationId) {
-        Speech speech = speechService.createSpeech(presentationId);
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @RequestBody SpeechCreateDto dto) {
+        Optional<Integer> refSpeechId = Optional.ofNullable(dto.getReferenceSpeechId());
+        Speech speech = speechService.createSpeech(presentationId, refSpeechId);
         return new ResponseEntity<>(
             new SpeechRespDto(speech),
             HttpStatus.CREATED
