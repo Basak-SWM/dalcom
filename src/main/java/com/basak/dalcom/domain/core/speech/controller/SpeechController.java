@@ -29,6 +29,7 @@ import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -234,5 +235,20 @@ public class SpeechController {
         );
         analysisResultService.createAnalysisResultOf(speech, AnalysisType.STT, body);
         speechService.sttDoneAndStartAnalyze2(speech);
+    }
+
+    @Operation(
+        summary = "스피치 삭제 API"
+    )
+    @ApiResponse(responseCode = "204", description = "스피치 삭제 성공",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @DeleteMapping("/{speech-id}")
+    public ResponseEntity<Void> deleteSpeech(
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @PathVariable(name = "speech-id") Integer speechId) {
+        speechService.deleteById(speechId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

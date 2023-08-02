@@ -18,7 +18,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,5 +77,19 @@ public class PresentationController {
             .map(PresentationRespDto::new)
             .toList();
         return new ResponseEntity<>(presentationDtoList, HttpStatus.OK);
+    }
+
+    @Operation(
+        summary = "프레젠테이션 삭제 API"
+    )
+    @ApiResponse(responseCode = "204", description = "프레젠테이션 삭제 성공",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 프레젠테이션이 존재하지 않는 경우",
+        content = @Content)
+    @DeleteMapping("/{presentation-id}")
+    public ResponseEntity<Void> deletePresentation(
+        @PathVariable(name = "presentation-id") Integer presentationId) {
+        presentationService.deleteById(presentationId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
