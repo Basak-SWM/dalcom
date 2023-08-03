@@ -45,6 +45,7 @@ public class Speech extends BaseEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "referenceSpeech")
     private List<Speech> referencingSpeeches;
 
+    @Setter
     private String fullAudioS3Url;
 
     @Column(nullable = false)
@@ -65,5 +66,11 @@ public class Speech extends BaseEntity {
 
     public void disconnectReferenceSpeech() {
         this.referenceSpeech = null;
+    }
+
+    public void setPresignedAudioSegments(List<AudioSegment> audioSegments) {
+        List<AudioSegment> copied = List.copyOf(audioSegments);
+        this.audioSegments.clear();
+        this.audioSegments.addAll(copied);
     }
 }

@@ -3,6 +3,7 @@ package com.basak.dalcom.domain.core.speech.controller.dto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,16 +19,20 @@ public class SpeechRespDto {
     @Schema(description = "생성된 speech의 id")
     private Integer id;
     @Schema(description = "정렬된 AudioSegment Presigned URL 목록")
-    private List<URL> audioSegments;
+    private List<URL> audioSegments = new ArrayList<>();
     @Schema(description = "녹음 종료 여부")
     private Boolean recordDone;
     @Schema(description = "참조 speech의 id")
     private Integer refSpeechId = null;
+    @Schema(description = "Full audio가 저장된 경로 (presigned)")
+    private String fullAudioS3Url;
 
     public SpeechRespDto(Speech speech) {
         this.id = speech.getId();
         this.userSymbol = speech.getUserSymbol();
         this.recordDone = speech.getRecordDone();
+        this.fullAudioS3Url = speech.getFullAudioS3Url();
+
         if (speech.getAudioSegments() != null) {
             this.audioSegments = speech.getAudioSegments().stream()
                 .map(audioSegment -> audioSegment.getFullAudioS3Url())
@@ -39,6 +44,7 @@ public class SpeechRespDto {
                     }
                 }).toList();
         }
+
         if (speech.getReferenceSpeech() != null) {
             this.refSpeechId = speech.getReferenceSpeech().getId();
         }
