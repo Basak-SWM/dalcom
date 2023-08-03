@@ -11,8 +11,10 @@ public enum AnalysisType {
     STT("STT"),
     DECIBEL("DECIBEL"),
     HERTZ("HERTZ"),
-    WPM("WPM"),
-    PAUSE("PAUSE");
+    LPM("LPM"),
+    LPM_AVG("LPM_AVG"),
+    PAUSE("PAUSE"),
+    PAUSE_AVG("PAUSE_AVG");
 
     @Getter
     private final String value;
