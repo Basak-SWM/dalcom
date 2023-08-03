@@ -14,9 +14,11 @@ import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
 import com.basak.dalcom.external_api.wasak.service.WasakService;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -108,24 +110,31 @@ public class SpeechService {
         Speech speech = speechRepository.findSpeechByIdAndPresentationId(speechId, presentationId)
             .orElseThrow(() -> new NotFoundException("Speech"));
 
-//        speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
-//            .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
-//
-//        if (withPresignedAudioSegments) {
-//            List<AudioSegment> audioSegments = speech.getAudioSegments();
-//
-//            for (AudioSegment audioSegment : audioSegments) {
-//                try {
-//                    URL presignedUrl = presignedURLService.getPresignedURLForDownload(
-//                        new URL(audioSegment.getFullAudioS3Url()));
-//                    audioSegment.updateAsPresignedUrl(presignedUrl.toString());
-//                } catch (MalformedURLException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-//
-//            speech.setPresignedAudioSegments(audioSegments);
-//        }
+        speech.setPresignedAudioSegments(speech.getAudioSegments().stream()
+            .sorted(Comparator.comparing(AudioSegment::getFullAudioS3Url)).toList());
+
+        if (withPresignedAudioSegments) {
+            List<AudioSegment> audioSegments = speech.getAudioSegments();
+            for (AudioSegment audioSegment : audioSegments) {
+                try {
+                    URL presignedUrl = presignedURLService.getPresignedURLForDownload(
+                        new URL(audioSegment.getFullAudioS3Url()));
+                    audioSegment.updateAsPresignedUrl(presignedUrl.toString());
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            speech.setPresignedAudioSegments(audioSegments);
+        }
+
+        if (speech.getFullAudioS3Url() != null) {
+            try {
+                speech.setFullAudioS3Url(presignedURLService.getPresignedURLForDownload(
+                    new URL(speech.getFullAudioS3Url())).toString());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         return speech;
     }
