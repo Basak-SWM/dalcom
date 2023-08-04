@@ -54,7 +54,8 @@ public class SpeechService {
         );
         URL downloadUrl = presignedURLService.getPresignedURLForDownload(fullAudioKey);
 
-        wasakService.requestAnalysis1(speech.getId(), callbackUrl, fullAudioKey, downloadUrl);
+        wasakService.requestAnalysis1(speech.getPresentation().getId(), speech.getId(),
+            callbackUrl, fullAudioKey, downloadUrl);
 
         speech.setRecordDone();
     }
