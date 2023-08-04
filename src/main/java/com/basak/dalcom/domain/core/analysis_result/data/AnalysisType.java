@@ -14,7 +14,8 @@ public enum AnalysisType {
     LPM("LPM"),
     LPM_AVG("LPM_AVG"),
     PAUSE("PAUSE"),
-    PAUSE_RATIO("PAUSE_RATIO");
+    PAUSE_RATIO("PAUSE_RATIO"),
+    SPEECH_CORRECTION("SPEECH_CORRECTION");
 
     @Getter
     private final String value;
