@@ -20,7 +20,7 @@ public class WasakService {
     private final APIService apiService;
 
     @SneakyThrows
-    public void requestAnalysis1(Integer speechId,
+    public void requestAnalysis1(Integer presentationId, Integer speechId,
         URL callbackUrl, String uploadKey, URL downloadUrl) {
         Map<String, String> body = new HashMap<>();
         body.put("callback_url", callbackUrl.toString());
@@ -33,7 +33,8 @@ public class WasakService {
 
         try {
             ResponseEntity<Void> response = apiService.createResource(
-                "/v1/speech/" + speechId + "/analysis-1", body, null);
+                "/v1/presentations/" + presentationId + "/speech/" + speechId + "/analysis-1", body,
+                null);
 
             if (response.getStatusCode().isError()) {
                 throw new HandledException(response.getStatusCode(),
@@ -54,7 +55,8 @@ public class WasakService {
 
         try {
             ResponseEntity<Void> response = apiService.createResource(
-                "/v1/speech/" + speechId + "/analysis-2", body, null);
+                "/v1/presentations/" + presentationId + "/speech/" + speechId + "/analysis-2", body,
+                null);
             if (response.getStatusCode().isError()) {
                 throw new HandledException(response.getStatusCode(),
                     "Something went wrong in wasak.");
