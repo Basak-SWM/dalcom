@@ -27,8 +27,12 @@ public class S3Service {
         return amazonS3.doesObjectExist(bucketName, key);
     }
 
-    public void uploadAsJson(String key, String body) {
+    public String uploadAsJson(String key, String body) {
         amazonS3.putObject(config.DEFAULT_BUCKET_NAME, key, body);
+        String objectUrl =
+            "https://" + config.DEFAULT_BUCKET_NAME + ".s3." + amazonS3.getRegionName()
+                + ".amazonaws.com/" + key;
+        return objectUrl;
     }
 
     public S3Object download(String key) {

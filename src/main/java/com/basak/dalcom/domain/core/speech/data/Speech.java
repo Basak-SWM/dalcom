@@ -1,6 +1,7 @@
 package com.basak.dalcom.domain.core.speech.data;
 
 import com.basak.dalcom.domain.common.BaseEntity;
+import com.basak.dalcom.domain.core.analysis_result.data.AnalysisRecord;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import java.util.List;
@@ -59,6 +60,9 @@ public class Speech extends BaseEntity {
     @Setter
     @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AudioSegment> audioSegments;
+
+    @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnalysisRecord> analysisRecords;
 
     public void setRecordDone() {
         this.recordDone = true;

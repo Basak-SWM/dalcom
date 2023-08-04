@@ -1,8 +1,10 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
+import com.basak.dalcom.aws.s3.S3Service;
+import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
-import com.basak.dalcom.domain.core.analysis_result.service.AnalysisResultService;
+import com.basak.dalcom.domain.core.analysis_result.service.AnalysisRecordService;
 import com.basak.dalcom.domain.core.audio_segment.controller.dto.AudioSegmentRespDto;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
@@ -48,7 +50,9 @@ public class SpeechController {
 
     private final SpeechService speechService;
     private final AudioSegmentService audioSegmentService;
-    private final AnalysisResultService analysisResultService;
+    private final AnalysisRecordService analysisResultService;
+    private final PresignedURLService presignedURLService;
+    private final S3Service s3Service;
 
     @Operation(
         summary = "스피치 생성 API",
@@ -86,6 +90,7 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, true);
+
         return new ResponseEntity<>(new SpeechRespDto(speech), HttpStatus.OK);
     }
 
@@ -205,6 +210,8 @@ public class SpeechController {
         summary = "분석 결과 조회용 presigned URL API"
     )
     @ApiResponse(responseCode = "200", description = "조회 성공")
+    @ApiResponse(responseCode = "202", description = "아직 처리중인 경우",
+        content = @Content)
     @ApiResponse(responseCode = "404", description = "전달된 ID를 가지는 스피치가 존재하지 않는 경우",
         content = @Content)
     @ApiResponse(responseCode = "409", description = "연습 종료 처리 되지 않은 스피치인 경우",
@@ -224,7 +231,14 @@ public class SpeechController {
         }
 
         Map<AnalysisType, URL> records = analysisResultService
-            .getAnalysisResultsOf(speech);
+            .getAnalysisRecordsOf(speech);
+
+        for (AnalysisType type : AnalysisType.values()) {
+            if (!records.containsKey(type)) {
+                return new ResponseEntity<>(HttpStatus.ACCEPTED);
+            }
+        }
+
         return new ResponseEntity<>(records, HttpStatus.OK);
     }
 
@@ -237,7 +251,14 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
-        analysisResultService.createAnalysisResultOf(speech, AnalysisType.STT, body);
+        // S3에 결과 업로드
+        String key = speech.getPresentation().getId() + "/" + speech.getId() + "/analysis/STT.json";
+        String strUrl = s3Service.uploadAsJson(key, body);
+
+        // 완료 기록은 Wasak에서 문장 재조합을 마친 다음 저장함
+        // analysisResultService.createAnalysisRecordOf(speech, AnalysisType.STT, strUrl);
+
+        // 2차 분석 요청
         speechService.sttDoneAndStartAnalyze2(speech);
     }
 
