@@ -233,10 +233,18 @@ public class SpeechController {
         Map<AnalysisType, URL> records = analysisResultService
             .getAnalysisRecordsOf(speech);
 
+        // 누락 확인
         for (AnalysisType type : AnalysisType.values()) {
             if (!records.containsKey(type)) {
                 return new ResponseEntity<>(HttpStatus.ACCEPTED);
             }
+        }
+
+        // Presign
+        for (AnalysisType type : records.keySet()) {
+            URL url = records.get(type);
+            URL presignedUrl = presignedURLService.getPresignedURLForDownload(url);
+            records.put(type, presignedUrl);
         }
 
         return new ResponseEntity<>(records, HttpStatus.OK);
