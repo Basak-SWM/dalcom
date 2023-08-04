@@ -8,6 +8,7 @@ spring:
     username: dalcom_admin
     password: thisispassword123!
   jpa:
+    show-sql: true
     hibernate:
       ddl-auto: update
 
