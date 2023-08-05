@@ -58,6 +58,11 @@ public class Speech extends BaseEntity {
     private String userSymbol;
 
     @Setter
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private Boolean bookmarked;
+
+    @Setter
     @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AudioSegment> audioSegments;
 
