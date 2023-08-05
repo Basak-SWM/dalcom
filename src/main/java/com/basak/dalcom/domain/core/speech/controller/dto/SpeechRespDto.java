@@ -33,6 +33,8 @@ public class SpeechRespDto {
     private String createdDate;
     @Schema(description = "수정 일시", example = "2023-08-02 18:33:04")
     private String lastModifiedDate;
+    @Schema(description = "북마크 여부")
+    private Boolean bookmarked;
 
     public SpeechRespDto(Speech speech) {
         this.id = speech.getId();
@@ -41,6 +43,7 @@ public class SpeechRespDto {
         this.fullAudioS3Url = speech.getFullAudioS3Url();
         this.createdDate = speech.getCreatedDate().format(FORMATTER);
         this.lastModifiedDate = speech.getLastModifiedDate().format(FORMATTER);
+        this.bookmarked = speech.getBookmarked();
 
         if (speech.getAudioSegments() != null) {
             this.audioSegments = speech.getAudioSegments().stream()

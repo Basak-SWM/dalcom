@@ -27,9 +27,6 @@ public class WasakService {
         body.put("upload_key", uploadKey);
         body.put("download_url", downloadUrl.toString());
 
-        System.out.println("callback_url: " + callbackUrl);
-        System.out.println("upload_key: " + uploadKey);
-        System.out.println("download_url: " + downloadUrl);
 
         try {
             ResponseEntity<Void> response = apiService.createResource(
@@ -66,6 +63,5 @@ public class WasakService {
                 "Malformed URL error."
             );
         }
-
     }
 }

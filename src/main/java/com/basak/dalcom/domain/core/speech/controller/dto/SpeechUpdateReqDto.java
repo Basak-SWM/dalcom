@@ -9,4 +9,7 @@ public class SpeechUpdateReqDto {
 
     @Schema(description = "사용자 기호", type = "stringfied json")
     private final JsonNullable<String> userSymbol = JsonNullable.undefined();
+
+    @Schema(description = "북마크 여부", type = "boolean")
+    private final JsonNullable<Boolean> bookmarked = JsonNullable.undefined();
 }
