@@ -15,7 +15,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class SpeechRespDto {
 
-    private static DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
 
     @Schema(description = "사용자 기호 Raw 저장값")
     private final String userSymbol;

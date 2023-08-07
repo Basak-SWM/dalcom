@@ -10,8 +10,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PresentationRespDto {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(
-        "yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
 
 
     @Schema(description = "id", type = "integer", example = "1")
