@@ -34,6 +34,8 @@ public class SpeechRespDto {
     private String createdDate;
     @Schema(description = "수정 일시 (UTC)", example = "2023-08-07T04:06:56Z")
     private String lastModifiedDate;
+    @Schema(description = "프레젠테이션 내에서 speech의 순서", example = "1")
+    private Integer order;
     @Schema(description = "북마크 여부")
     private Boolean bookmarked;
 
@@ -45,6 +47,7 @@ public class SpeechRespDto {
         this.createdDate = speech.getCreatedDate().atOffset(ZoneOffset.UTC).format(FORMATTER);
         this.lastModifiedDate = speech.getLastModifiedDate().atOffset(ZoneOffset.UTC)
             .format(FORMATTER);
+        this.order = speech.getOrder();
         this.bookmarked = speech.getBookmarked();
 
         if (speech.getAudioSegments() != null) {
