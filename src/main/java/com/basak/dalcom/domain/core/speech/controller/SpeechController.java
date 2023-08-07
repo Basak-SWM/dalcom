@@ -198,7 +198,7 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId,
         @RequestBody SpeechUpdateReqDto requestDto) {
         SpeechUpdateDto serviceDto = new SpeechUpdateDto(
-            presentationId, speechId, requestDto.getUserSymbol()
+            presentationId, speechId, requestDto.getUserSymbol(), requestDto.getBookmarked()
         );
 
         Speech updatedSpeech = speechService.partialUpdate(serviceDto);

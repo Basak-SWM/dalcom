@@ -177,6 +177,10 @@ public class SpeechService {
             dto.getUserSymbol().get()
         ));
 
+        dto.getBookmarked().ifPresent(bookmarked -> speech.setBookmarked(
+            dto.getBookmarked().get()
+        ));
+
         return speech;
     }
 
