@@ -2,6 +2,7 @@ package com.basak.dalcom.domain.core.presentation.controller.dto;
 
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,8 +11,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class PresentationRespDto {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(
-        "yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 
     @Schema(description = "id", type = "integer", example = "1")
@@ -22,9 +22,9 @@ public class PresentationRespDto {
     private final String outline;
     @Schema(description = "잘 하고 싶은 점", type = "string", example = "각각의 장단점이 잘 부각되도록, 구체적인 예시와 함께 설명하기")
     private final String checkpoint;
-    @Schema(description = "생성 일시", example = "2023-08-02 18:33:04")
+    @Schema(description = "생성 일시 (UTC)", example = "2023-08-07T04:06:56Z")
     private final String createdDate;
-    @Schema(description = "수정 일시", example = "2023-08-02 18:33:04")
+    @Schema(description = "수정 일시 (UTC)", example = "2023-08-07T04:06:56Z")
     private String lastModifiedDate;
 
     public PresentationRespDto(Presentation presentation) {
@@ -32,7 +32,8 @@ public class PresentationRespDto {
         this.title = presentation.getTitle();
         this.outline = presentation.getOutline();
         this.checkpoint = presentation.getCheckpoint();
-        this.createdDate = presentation.getCreatedDate().format(FORMATTER);
-        this.lastModifiedDate = presentation.getLastModifiedDate().format(FORMATTER);
+        this.createdDate = presentation.getCreatedDate().atOffset(ZoneOffset.UTC).format(FORMATTER);
+        this.lastModifiedDate = presentation.getLastModifiedDate().atOffset(ZoneOffset.UTC)
+            .format(FORMATTER);
     }
 }
