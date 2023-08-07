@@ -10,9 +10,11 @@ import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
+import com.basak.dalcom.domain.core.speech.data.AIChatLog;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
+import com.basak.dalcom.external_api.openai.service.OpenAIService;
 import com.basak.dalcom.external_api.wasak.service.WasakService;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -37,6 +39,7 @@ public class SpeechService {
     private final S3Service s3Service;
     private final WasakService wasakService;
     private final AudioSegmentService audioSegmentService;
+    private final OpenAIService openAIService;
 
     private final NCPConfig ncpConfig;
 
@@ -212,5 +215,10 @@ public class SpeechService {
 
         // 스피치 삭제
         speechRepository.deleteById(speechId);
+    }
+
+    public AIChatLog chatGPTPrompt(Speech speech, String content) {
+        AIChatLog aiChatLog = openAIService.createPrompt(speech, content);
+        return aiChatLog;
     }
 }

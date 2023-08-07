@@ -9,14 +9,20 @@ import com.basak.dalcom.domain.core.audio_segment.controller.dto.AudioSegmentRes
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegmentDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogListRespDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogReqDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.PresignedUrlReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechCreateDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
+import com.basak.dalcom.domain.core.speech.data.AIChatLog;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
+import com.basak.dalcom.domain.core.speech.service.dto.AIChatLogRetrieveResult;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
+import com.basak.dalcom.external_api.openai.service.OpenAIService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -52,6 +58,7 @@ public class SpeechController {
     private final AudioSegmentService audioSegmentService;
     private final AnalysisRecordService analysisResultService;
     private final PresignedURLService presignedURLService;
+    private final OpenAIService openAIService;
     private final S3Service s3Service;
 
     @Operation(
@@ -283,5 +290,43 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId) {
         speechService.deleteById(speechId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
+    @GetMapping("/{speech-id}/ai-chat-logs")
+    public ResponseEntity<AIChatLogListRespDto> getAIChatLogs(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, true);
+
+        AIChatLogRetrieveResult result = openAIService.getAIChatLogsOf(speech);
+        List<AIChatLog> completedLogs = result.getCompletedLogs();
+        List<AIChatLog> uncompletedLogs = result.getUncompletedLogs();
+
+        AIChatLogListRespDto respDto = AIChatLogListRespDto.builder()
+            .completedChatLogs(completedLogs.stream().map(AIChatLogRespDto::new).toList())
+            .uncompletedChatLogs(uncompletedLogs.stream().map(AIChatLogRespDto::new).toList())
+            .build();
+
+        return new ResponseEntity<>(respDto, HttpStatus.OK);
+    }
+
+    @PostMapping("/{speech-id}/ai-chat-logs")
+    public ResponseEntity<String> createAIChatLog(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @RequestBody AIChatLogReqDto requestDto) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, true);
+
+        AIChatLog log = speechService.chatGPTPrompt(speech, requestDto.getPrompt());
+        String answer = log.getResult();
+
+        return new ResponseEntity<>(answer, HttpStatus.ACCEPTED);
     }
 }
