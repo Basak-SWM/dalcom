@@ -1,5 +1,6 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
+import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.domain.common.exception.UnhandledException;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
@@ -63,6 +64,7 @@ public class SpeechController {
     private final AnalysisRecordService analysisResultService;
     private final PresignedURLService presignedURLService;
     private final OpenAIService openAIService;
+    private final S3Service s3Service;
     private final JsonParser jsonParser = new JacksonJsonParser();
 
     @Operation(
@@ -270,6 +272,10 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
+
+        // S3에 결과 업로드
+        String key = speech.getPresentation().getId() + "/" + speech.getId() + "/analysis/STT.json";
+        String strUrl = s3Service.uploadAsJson(key, body);
 
         // 논리적 피드백 준비
         try {
