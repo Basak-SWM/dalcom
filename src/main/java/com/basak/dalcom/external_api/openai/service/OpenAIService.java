@@ -104,6 +104,7 @@ public class OpenAIService extends APIServiceImpl {
         body.put("model", "gpt-3.5-turbo");
         body.put("user", accountUuid);
         body.put("temperature", 0.5);
+        body.put("max_tokens", 200);
 
         List<Map<String, String>> messages = new ArrayList<>();
         messages.add(createMessage(OpenAIRole.USER, content));
