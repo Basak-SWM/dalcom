@@ -90,6 +90,7 @@ public class SpeechService {
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
             .recordDone(false)
+            .bookmarked(false)
             .referenceSpeech(referenceSpeech)
             .build();
 
