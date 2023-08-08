@@ -1,6 +1,5 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
-import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.domain.common.exception.UnhandledException;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
@@ -63,7 +62,6 @@ public class SpeechController {
     private final AnalysisRecordService analysisResultService;
     private final PresignedURLService presignedURLService;
     private final OpenAIService openAIService;
-    private final S3Service s3Service;
     private final JsonParser jsonParser = new JacksonJsonParser();
 
     @Operation(
@@ -311,9 +309,26 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, true);
 
+        if (!speech.getRecordDone()) {
+            throw new ConflictException("Record not done.");
+        }
+
         AIChatLogRetrieveResult result = openAIService.getAIChatLogsOf(speech);
         List<AIChatLog> completedLogs = result.getCompletedLogs();
         List<AIChatLog> uncompletedLogs = result.getUncompletedLogs();
+        List<AIChatLog> systemLogs = result.getSystemLogs();
+
+        // 아직 초기화 프롬프트가 생성되지 않은 경우 폴링 필요
+        if (systemLogs.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }
+
+        // 사전 질의가 아직 완료되지 않은 경우 폴링 필요
+        for (AIChatLog systemLog : systemLogs) {
+            if (!systemLog.getIsDone()) {
+                return new ResponseEntity<>(HttpStatus.ACCEPTED);
+            }
+        }
 
         AIChatLogListRespDto respDto = AIChatLogListRespDto.builder()
             .completedChatLogs(completedLogs.stream().map(AIChatLogRespDto::new).toList())
@@ -321,6 +336,22 @@ public class SpeechController {
             .build();
 
         return new ResponseEntity<>(respDto, HttpStatus.OK);
+    }
+
+    @GetMapping("/{speech-id}/ai-chat-logs/{log-id}")
+    public ResponseEntity<AIChatLogRespDto> getAIChatLog(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @Parameter(name = "log-id")
+        @PathVariable(name = "log-id") Long logId
+    ) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, true);
+
+        AIChatLog log = openAIService.getAIChatLogById(logId);
+        return new ResponseEntity<>(new AIChatLogRespDto(log), HttpStatus.OK);
     }
 
     @PostMapping("/{speech-id}/ai-chat-logs")
@@ -331,7 +362,7 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId,
         @RequestBody AIChatLogReqDto requestDto) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
-            speechId, presentationId, true);
+            speechId, presentationId, false);
 
         AIChatLog log = speechService.chatGPTPrompt(speech, requestDto.getPrompt());
 

@@ -2,6 +2,7 @@ package com.basak.dalcom.external_api.openai.service;
 
 import com.basak.dalcom.config.OpenAIConfig;
 import com.basak.dalcom.domain.common.exception.UnhandledException;
+import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import com.basak.dalcom.domain.core.speech.data.AIChatLog;
 import com.basak.dalcom.domain.core.speech.data.AIChatLogRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
@@ -81,27 +82,15 @@ public class OpenAIService extends APIServiceImpl {
         return log;
     }
 
-    @Async
-    public void request(AIChatLog log, Map<String, Object> body) {
-        try {
-            ResponseEntity<Map<String, Object>> response = createResource("", body,
-                createHeaders());
-            CompletionAPIRespDto dto = new CompletionAPIRespDto(response.getBody());
-            if (!dto.getChoices().isEmpty()) {
-                Choice choice = dto.getChoices().get(0);
-                Message message = choice.getMessage();
-                String content = message.getContent();
-                log.updateResult(content);
-            }
-        } catch (MalformedURLException ex) {
-            throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid OpenAI URL");
-        }
-    }
-
     public AIChatLogRetrieveResult getAIChatLogsOf(Speech speech) {
         AIChatLogRetrieveResult result = new AIChatLogRetrieveResult(
             aiChatLogRepository.findAllBySpeech(speech));
         return result;
+    }
+
+    public AIChatLog getAIChatLogById(Long id) {
+        return aiChatLogRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("AIChatLog"));
     }
 
     private HttpHeaders createHeaders() {
