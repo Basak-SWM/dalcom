@@ -8,6 +8,7 @@ import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegmentRepository;
 import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegmentDto;
 import com.basak.dalcom.domain.core.speech.data.Speech;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -38,5 +39,9 @@ public class AudioSegmentService {
         s3Service.deleteByKey(key);
 
         audioSegmentRepository.delete(audioSegment);
+    }
+
+    public void deleteAudioSegments(List<AudioSegment> audioSegments) {
+        audioSegmentRepository.deleteAllInBatch(audioSegments);
     }
 }

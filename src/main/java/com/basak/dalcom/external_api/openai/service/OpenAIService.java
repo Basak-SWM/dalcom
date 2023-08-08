@@ -119,4 +119,8 @@ public class OpenAIService extends APIServiceImpl {
         message.put("content", content);
         return message;
     }
+
+    public void deleteAIChatLogs(List<AIChatLog> logs) {
+        aiChatLogRepository.deleteAllInBatch(logs);
+    }
 }
