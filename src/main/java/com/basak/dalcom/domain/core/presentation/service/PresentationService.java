@@ -35,6 +35,7 @@ public class PresentationService {
             .title(dto.getTitle())
             .outline(dto.getOutline())
             .checkpoint(dto.getCheckpoint())
+            .speechAutoIncrementValue(0)
             .build();
 
         presentationRepository.save(presentation);
