@@ -14,13 +14,13 @@ import com.basak.dalcom.external_api.openai.service.dto.CompletionAPIRespDto.Mes
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -28,10 +28,6 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class OpenAIService extends APIServiceImpl {
 
-    private static final String[] PRE_REQUEST_PROMPT = {
-        "You are an expert who helps student write better after receiving a script for a speech.",
-        "You have to answer in Korean within 100 tokens."
-    };
     private final OpenAIConfig openAIConfig;
     private final AIChatLogRepository aiChatLogRepository;
 
@@ -47,18 +43,13 @@ public class OpenAIService extends APIServiceImpl {
         return openAIConfig.getAPIEndpoint();
     }
 
+    @Async
     @Transactional
-    public AIChatLog createPrompt(Speech speech, String prompt) {
-        String accountUuid = speech.getPresentation().getUserProfile().getAccount().getUuid();
-        Map<String, Object> body = createBody(accountUuid, prompt);
+    public AIChatLog doAsyncPrompt(AIChatLog log) {
+        String accountUuid = log.getSpeech().getPresentation()
+            .getUserProfile().getAccount().getUuid();
 
-        AIChatLog log = AIChatLog.builder()
-            .speech(speech)
-            .prompt(prompt)
-            .isDone(false)
-            .build();
-
-        aiChatLogRepository.save(log);
+        Map<String, Object> body = createBody(accountUuid, log.getPrompt());
 
         try {
             ResponseEntity<Map<String, Object>> response = createResource("", body,
@@ -69,9 +60,39 @@ public class OpenAIService extends APIServiceImpl {
                 Message message = choice.getMessage();
                 String content = message.getContent();
                 log.updateResult(content);
+                aiChatLogRepository.save(log);
             }
+        } catch (MalformedURLException ex) {
+            throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid OpenAI URL");
+        }
 
-            return log;
+        return log;
+    }
+
+    @Transactional
+    public AIChatLog createEmptyAIChatLog(Speech speech, String prompt, OpenAIRole role) {
+        AIChatLog log = AIChatLog.builder()
+            .speech(speech)
+            .prompt(prompt)
+            .role(role)
+            .isDone(false)
+            .build();
+        aiChatLogRepository.save(log);
+        return log;
+    }
+
+    @Async
+    public void request(AIChatLog log, Map<String, Object> body) {
+        try {
+            ResponseEntity<Map<String, Object>> response = createResource("", body,
+                createHeaders());
+            CompletionAPIRespDto dto = new CompletionAPIRespDto(response.getBody());
+            if (!dto.getChoices().isEmpty()) {
+                Choice choice = dto.getChoices().get(0);
+                Message message = choice.getMessage();
+                String content = message.getContent();
+                log.updateResult(content);
+            }
         } catch (MalformedURLException ex) {
             throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR, "Invalid OpenAI URL");
         }
@@ -93,10 +114,9 @@ public class OpenAIService extends APIServiceImpl {
         Map<String, Object> body = new HashMap<>();
         body.put("model", "gpt-3.5-turbo");
         body.put("user", accountUuid);
+        body.put("temperature", 0.5);
 
         List<Map<String, String>> messages = new ArrayList<>();
-        Arrays.stream(PRE_REQUEST_PROMPT)
-            .forEach(prompt -> messages.add(createMessage(OpenAIRole.SYSTEM, prompt)));
         messages.add(createMessage(OpenAIRole.USER, content));
         body.put("messages", messages);
 

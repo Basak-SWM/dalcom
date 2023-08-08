@@ -14,12 +14,14 @@ import com.basak.dalcom.domain.core.speech.data.AIChatLog;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.data.SpeechRepository;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
+import com.basak.dalcom.external_api.openai.controller.dto.OpenAIRole;
 import com.basak.dalcom.external_api.openai.service.OpenAIService;
 import com.basak.dalcom.external_api.wasak.service.WasakService;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -32,15 +34,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SpeechService {
 
+    private static final String[] ROLE_DESCRIPTION_PROMPT = {
+        "You are an expert who helps student write better after receiving a script for a speech.",
+        "You have to answer in Korean within 100 tokens.",
+        "Evaluate the logic of the script mainly, and if you need additional information, it is okay to ask active questions to the student."
+    };
+
     private final SpeechRepository speechRepository;
     private final PresentationRepository presentationRepository;
-
     private final PresignedURLService presignedURLService;
     private final S3Service s3Service;
     private final WasakService wasakService;
     private final AudioSegmentService audioSegmentService;
     private final OpenAIService openAIService;
-
     private final NCPConfig ncpConfig;
 
     /**
@@ -129,14 +135,14 @@ public class SpeechService {
                 }
             }
             speech.setPresignedAudioSegments(audioSegments);
-        }
 
-        if (speech.getFullAudioS3Url() != null) {
-            try {
-                speech.setFullAudioS3Url(presignedURLService.getPresignedURLForDownload(
-                    new URL(speech.getFullAudioS3Url())).toString());
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
+            if (speech.getFullAudioS3Url() != null) {
+                try {
+                    speech.setFullAudioS3Url(presignedURLService.getPresignedURLForDownload(
+                        new URL(speech.getFullAudioS3Url())).toString());
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
 
@@ -217,8 +223,27 @@ public class SpeechService {
         speechRepository.deleteById(speechId);
     }
 
-    public AIChatLog chatGPTPrompt(Speech speech, String content) {
-        AIChatLog aiChatLog = openAIService.createPrompt(speech, content);
-        return aiChatLog;
+    public AIChatLog chatGPTPrompt(Speech speech, String prompt) {
+        AIChatLog emptyAIChatLog = openAIService.createEmptyAIChatLog(
+            speech, prompt, OpenAIRole.USER
+        );
+        openAIService.doAsyncPrompt(emptyAIChatLog);
+        return emptyAIChatLog;
+    }
+
+    public AIChatLog initChatGPTPrompt(Speech speech, String textScript) {
+        StringBuilder sb = new StringBuilder();
+        Arrays.stream(ROLE_DESCRIPTION_PROMPT).forEach(sb::append);
+
+        sb.append("This is the script the student wrote : ");
+        sb.append(textScript);
+
+        String prompt = sb.toString();
+        AIChatLog emptyAIChatLog = openAIService.createEmptyAIChatLog(
+            speech, prompt, OpenAIRole.USER
+        );
+        openAIService.doAsyncPrompt(emptyAIChatLog);
+
+        return emptyAIChatLog;
     }
 }

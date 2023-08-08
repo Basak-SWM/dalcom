@@ -1,6 +1,8 @@
 package com.basak.dalcom.domain.core.speech.data;
 
 import com.basak.dalcom.domain.common.BaseEntity;
+import com.basak.dalcom.external_api.openai.controller.dto.OpenAIRole;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,12 +32,18 @@ public class AIChatLog extends BaseEntity {
     @JoinColumn(name = "speech_id", nullable = false)
     private Speech speech;
 
+    @Column(columnDefinition = "TEXT", length = 1000, nullable = false)
     private String prompt;
 
+    @Column(columnDefinition = "TEXT", length = 1000)
     private String result;
 
+    @Column(nullable = false)
     @ColumnDefault("0")
     private Boolean isDone;
+
+    @Column(nullable = false)
+    private OpenAIRole role;
 
     public void updateResult(String result) {
         this.result = result;

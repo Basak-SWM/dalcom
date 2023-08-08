@@ -2,6 +2,7 @@ package com.basak.dalcom.domain.core.speech.controller;
 
 import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
+import com.basak.dalcom.domain.common.exception.UnhandledException;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
 import com.basak.dalcom.domain.core.analysis_result.service.AnalysisRecordService;
@@ -37,6 +38,9 @@ import java.util.Map;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.boot.json.JacksonJsonParser;
+import org.springframework.boot.json.JsonParseException;
+import org.springframework.boot.json.JsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,6 +64,7 @@ public class SpeechController {
     private final PresignedURLService presignedURLService;
     private final OpenAIService openAIService;
     private final S3Service s3Service;
+    private final JsonParser jsonParser = new JacksonJsonParser();
 
     @Operation(
         summary = "스피치 생성 API",
@@ -266,12 +271,16 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
-        // S3에 결과 업로드
-        String key = speech.getPresentation().getId() + "/" + speech.getId() + "/analysis/STT.json";
-        String strUrl = s3Service.uploadAsJson(key, body);
 
-        // 완료 기록은 Wasak에서 문장 재조합을 마친 다음 저장함
-        // analysisResultService.createAnalysisRecordOf(speech, AnalysisType.STT, strUrl);
+        // 논리적 피드백 준비
+        try {
+            Map<String, Object> sttObject = jsonParser.parseMap(body);
+            String textScript = (String) sttObject.get("text");
+            AIChatLog log = speechService.initChatGPTPrompt(speech, textScript);
+        } catch (JsonParseException ex) {
+            throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Invalid JSON format in speech with id :" + speech.getId());
+        }
 
         // 2차 분석 요청
         speechService.sttDoneAndStartAnalyze2(speech);
@@ -315,7 +324,7 @@ public class SpeechController {
     }
 
     @PostMapping("/{speech-id}/ai-chat-logs")
-    public ResponseEntity<String> createAIChatLog(
+    public ResponseEntity<Long> createAIChatLog(
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -325,8 +334,7 @@ public class SpeechController {
             speechId, presentationId, true);
 
         AIChatLog log = speechService.chatGPTPrompt(speech, requestDto.getPrompt());
-        String answer = log.getResult();
 
-        return new ResponseEntity<>(answer, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(log.getId(), HttpStatus.ACCEPTED);
     }
 }
