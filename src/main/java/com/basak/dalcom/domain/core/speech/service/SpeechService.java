@@ -71,6 +71,7 @@ public class SpeechService {
     /**
      * 최초 녹음 시작 시에 단일 Speech 생성하는 서비스
      */
+    @Transactional
     public Speech createSpeech(Integer presentationId, Optional<Integer> referenceSpeechId) {
         Presentation targetPresentation = presentationRepository
             .findPresentationById(presentationId)
@@ -87,11 +88,14 @@ public class SpeechService {
             throw new ConflictException("Reference Speech is not record done");
         }
 
+        targetPresentation.increaseSpeechAutoIncrementValue();
+
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
             .recordDone(false)
             .bookmarked(false)
             .referenceSpeech(referenceSpeech)
+            .order(targetPresentation.getSpeechAutoIncrementValue())
             .build();
 
         speechRepository.save(speech);

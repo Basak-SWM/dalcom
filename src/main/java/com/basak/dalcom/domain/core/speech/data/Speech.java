@@ -69,6 +69,11 @@ public class Speech extends BaseEntity {
     @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnalysisRecord> analysisRecords;
 
+    @Setter
+    @Column(name = "relative_order", nullable = false)
+    @ColumnDefault("1")
+    private int order;
+
     public void setRecordDone() {
         this.recordDone = true;
     }
