@@ -74,6 +74,15 @@ public class Speech extends BaseEntity {
     @ColumnDefault("1")
     private int order;
 
+    @Column(nullable = true)
+    private Integer feedbackCount;
+
+    private float avgLPM;
+
+    private float pauseRatio;
+
+    private float avgF0;
+
     public void setRecordDone() {
         this.recordDone = true;
     }
