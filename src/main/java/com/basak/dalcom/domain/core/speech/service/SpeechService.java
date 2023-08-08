@@ -240,7 +240,7 @@ public class SpeechService {
 
         String prompt = sb.toString();
         AIChatLog emptyAIChatLog = openAIService.createEmptyAIChatLog(
-            speech, prompt, OpenAIRole.USER
+            speech, prompt, OpenAIRole.SYSTEM
         );
         openAIService.doAsyncPrompt(emptyAIChatLog);
 
