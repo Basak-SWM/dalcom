@@ -4,7 +4,6 @@ import com.basak.dalcom.domain.common.BaseEntity;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
 import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -45,7 +44,7 @@ public class Presentation extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String checkpoint;
 
-    @OneToMany(mappedBy = "presentation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "presentation")
     private List<Speech> speeches;
 
     @Column(nullable = false)
