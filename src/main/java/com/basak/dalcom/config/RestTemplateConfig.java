@@ -31,7 +31,7 @@ public class RestTemplateConfig {
 
         factory.setHttpClient(client);
         factory.setConnectTimeout(3000);
-        factory.setReadTimeout(5000);
+        factory.setReadTimeout(60000);
 
         RestTemplate restTemplate = new RestTemplate(
             new BufferingClientHttpRequestFactory(factory));

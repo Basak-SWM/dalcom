@@ -30,3 +30,6 @@ cloud:
 wasak:
   api:
     host: http://localhost:8000
+
+openai:
+  secret-key: ${OPENAI_SECRET_KEY}

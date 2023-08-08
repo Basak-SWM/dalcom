@@ -18,7 +18,7 @@ public class WasakConfig {
 
     public URL getWasakAPIEndpoint(String path) {
         try {
-            return new URL(API_HOST + path);
+            return new URL(API_HOST + "/api" + path);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

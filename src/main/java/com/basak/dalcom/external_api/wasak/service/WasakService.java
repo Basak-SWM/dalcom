@@ -1,23 +1,33 @@
 package com.basak.dalcom.external_api.wasak.service;
 
+import com.basak.dalcom.config.WasakConfig;
 import com.basak.dalcom.domain.common.exception.HandledException;
 import com.basak.dalcom.domain.common.exception.UnhandledException;
-import com.basak.dalcom.external_api.common.service.APIService;
+import com.basak.dalcom.external_api.common.service.APIServiceImpl;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-@AllArgsConstructor
 @Service
-public class WasakService {
+public class WasakService extends APIServiceImpl {
 
-    private final APIService apiService;
+    private final WasakConfig wasakConfig;
+
+    public WasakService(RestTemplate restTemplate, WasakConfig wasakConfig) {
+        super(restTemplate);
+        this.wasakConfig = wasakConfig;
+    }
+
+    @Override
+    protected URL getUrl(String path) {
+        return wasakConfig.getWasakAPIEndpoint(path);
+    }
 
     @SneakyThrows
     public void requestAnalysis1(Integer presentationId, Integer speechId,
@@ -27,9 +37,8 @@ public class WasakService {
         body.put("upload_key", uploadKey);
         body.put("download_url", downloadUrl.toString());
 
-
         try {
-            ResponseEntity<Void> response = apiService.createResource(
+            ResponseEntity<Void> response = createResource(
                 "/v1/presentations/" + presentationId + "/speech/" + speechId + "/analysis-1", body,
                 null);
 
@@ -51,7 +60,7 @@ public class WasakService {
         body.put("speech_id", speechId);
 
         try {
-            ResponseEntity<Void> response = apiService.createResource(
+            ResponseEntity<Void> response = createResource(
                 "/v1/presentations/" + presentationId + "/speech/" + speechId + "/analysis-2", body,
                 null);
             if (response.getStatusCode().isError()) {

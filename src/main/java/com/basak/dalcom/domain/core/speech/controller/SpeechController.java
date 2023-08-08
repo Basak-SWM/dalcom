@@ -1,7 +1,7 @@
 package com.basak.dalcom.domain.core.speech.controller;
 
-import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
+import com.basak.dalcom.domain.common.exception.UnhandledException;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
 import com.basak.dalcom.domain.core.analysis_result.service.AnalysisRecordService;
@@ -9,14 +9,21 @@ import com.basak.dalcom.domain.core.audio_segment.controller.dto.AudioSegmentRes
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegmentDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogCreateResDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogListRespDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogReqDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.PresignedUrlReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechCreateDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.SpeechUpdateReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.UrlDto;
+import com.basak.dalcom.domain.core.speech.data.AIChatLog;
 import com.basak.dalcom.domain.core.speech.data.Speech;
 import com.basak.dalcom.domain.core.speech.service.SpeechService;
+import com.basak.dalcom.domain.core.speech.service.dto.AIChatLogRetrieveResult;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
+import com.basak.dalcom.external_api.openai.service.OpenAIService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,6 +38,9 @@ import java.util.Map;
 import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.boot.json.JacksonJsonParser;
+import org.springframework.boot.json.JsonParseException;
+import org.springframework.boot.json.JsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -52,7 +62,8 @@ public class SpeechController {
     private final AudioSegmentService audioSegmentService;
     private final AnalysisRecordService analysisResultService;
     private final PresignedURLService presignedURLService;
-    private final S3Service s3Service;
+    private final OpenAIService openAIService;
+    private final JsonParser jsonParser = new JacksonJsonParser();
 
     @Operation(
         summary = "스피치 생성 API",
@@ -259,12 +270,16 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
-        // S3에 결과 업로드
-        String key = speech.getPresentation().getId() + "/" + speech.getId() + "/analysis/STT.json";
-        String strUrl = s3Service.uploadAsJson(key, body);
 
-        // 완료 기록은 Wasak에서 문장 재조합을 마친 다음 저장함
-        // analysisResultService.createAnalysisRecordOf(speech, AnalysisType.STT, strUrl);
+        // 논리적 피드백 준비
+        try {
+            Map<String, Object> sttObject = jsonParser.parseMap(body);
+            String textScript = (String) sttObject.get("text");
+            AIChatLog log = speechService.initChatGPTPrompt(speech, textScript);
+        } catch (JsonParseException ex) {
+            throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Invalid JSON format in speech with id :" + speech.getId());
+        }
 
         // 2차 분석 요청
         speechService.sttDoneAndStartAnalyze2(speech);
@@ -283,5 +298,121 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId) {
         speechService.deleteById(speechId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+
+    @Operation(
+        summary = "논리적 피드백 기록 목록 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = AIChatLogListRespDto.class)))
+    @ApiResponse(responseCode = "202", description = "논리적 피드백 준비가 아직 되지 않은 경우 (polling 필요)",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "아직 연습이 끝나지 않은 스피치인 경우",
+        content = @Content)
+    @GetMapping("/{speech-id}/ai-chat-logs")
+    public ResponseEntity<AIChatLogListRespDto> getAIChatLogs(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, true);
+
+        // 녹음이 끝나지 않은 경우 녹음 완료 처리 먼저 해야 함
+        if (!speech.getRecordDone()) {
+            throw new ConflictException("Record not done.");
+        }
+
+        AIChatLogRetrieveResult result = openAIService.getAIChatLogsOf(speech);
+        List<AIChatLog> completedLogs = result.getCompletedLogs();
+        List<AIChatLog> uncompletedLogs = result.getUncompletedLogs();
+        List<AIChatLog> systemLogs = result.getSystemLogs();
+
+        // 아직 초기화 프롬프트가 생성되지 않은 경우 폴링 필요
+        if (systemLogs.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }
+
+        // 사전 질의가 아직 완료되지 않은 경우 폴링 필요
+        for (AIChatLog systemLog : systemLogs) {
+            if (!systemLog.getIsDone()) {
+                return new ResponseEntity<>(HttpStatus.ACCEPTED);
+            }
+        }
+
+        AIChatLogListRespDto respDto = AIChatLogListRespDto.builder()
+            .completedChatLogs(completedLogs.stream().map(AIChatLogRespDto::new).toList())
+            .uncompletedChatLogs(uncompletedLogs.stream().map(AIChatLogRespDto::new).toList())
+            .build();
+
+        return new ResponseEntity<>(respDto, HttpStatus.OK);
+    }
+
+    @Operation(
+        summary = "논리적 피드백 기록 단건 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = AIChatLogListRespDto.class)))
+    @ApiResponse(responseCode = "202", description = "처리 중인 경우 (polling 필요)",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "아직 연습이 끝나지 않은 스피치인 경우",
+        content = @Content)
+    @GetMapping("/{speech-id}/ai-chat-logs/{log-id}")
+    public ResponseEntity<AIChatLogRespDto> getAIChatLog(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @Parameter(name = "log-id")
+        @PathVariable(name = "log-id") Long logId
+    ) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, true);
+
+        if (!speech.getRecordDone()) {
+            throw new ConflictException("Record not done.");
+        }
+
+        AIChatLog log = openAIService.getAIChatLogById(logId);
+        if (!log.getIsDone()) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        } else {
+            return new ResponseEntity<>(new AIChatLogRespDto(log), HttpStatus.OK);
+        }
+    }
+
+    @Operation(
+        summary = "논리적 피드백 요청 API",
+        description = "논리적 피드백 생성을 비동기적으로 요청하는 API로, 요청이 완료되면 202 상태코드를 반환한다. <br/>"
+            + "응답으로 반환된 논리적 피드백의 id로 단건 조회 요청을 하여 논리적 피드백 완료 여부를 확인할 수 있다."
+    )
+    @ApiResponse(responseCode = "202", description = "생성 완료 (polling 필요)",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "아직 연습이 끝나지 않은 스피치인 경우",
+        content = @Content)
+    @PostMapping("/{speech-id}/ai-chat-logs")
+    public ResponseEntity<AIChatLogCreateResDto> createAIChatLog(
+        @Parameter(name = "presentation-id")
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @Parameter(name = "speech-id")
+        @PathVariable(name = "speech-id") Integer speechId,
+        @RequestBody AIChatLogReqDto requestDto) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false);
+
+        if (!speech.getRecordDone()) {
+            throw new ConflictException("Record not done.");
+        }
+
+        AIChatLog log = speechService.chatGPTPrompt(speech, requestDto.getPrompt());
+
+        return new ResponseEntity<>(new AIChatLogCreateResDto(log), HttpStatus.ACCEPTED);
     }
 }
