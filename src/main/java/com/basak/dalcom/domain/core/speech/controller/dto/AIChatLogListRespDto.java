@@ -14,6 +14,6 @@ public class AIChatLogListRespDto {
     @Schema(description = "응답이 완료된 AIChatLog 목록")
     private List<AIChatLogRespDto> completedChatLogs;
 
-    @Schema(description = "응답이 완료되지 않은 AIChatLog 목록")
+    @Schema(description = "응답이 완료되지 않은 AIChatLog 목록 (polling 필요)")
     private List<AIChatLogRespDto> uncompletedChatLogs;
 }

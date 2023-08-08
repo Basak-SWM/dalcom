@@ -9,6 +9,7 @@ import com.basak.dalcom.domain.core.audio_segment.controller.dto.AudioSegmentRes
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.audio_segment.service.dto.CreateAudioSegmentDto;
+import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogCreateResDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogListRespDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogReqDto;
 import com.basak.dalcom.domain.core.speech.controller.dto.AIChatLogRespDto;
@@ -300,6 +301,17 @@ public class SpeechController {
     }
 
 
+    @Operation(
+        summary = "논리적 피드백 기록 목록 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = AIChatLogListRespDto.class)))
+    @ApiResponse(responseCode = "202", description = "논리적 피드백 준비가 아직 되지 않은 경우 (polling 필요)",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "아직 연습이 끝나지 않은 스피치인 경우",
+        content = @Content)
     @GetMapping("/{speech-id}/ai-chat-logs")
     public ResponseEntity<AIChatLogListRespDto> getAIChatLogs(
         @Parameter(name = "presentation-id")
@@ -309,6 +321,7 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, true);
 
+        // 녹음이 끝나지 않은 경우 녹음 완료 처리 먼저 해야 함
         if (!speech.getRecordDone()) {
             throw new ConflictException("Record not done.");
         }
@@ -338,6 +351,17 @@ public class SpeechController {
         return new ResponseEntity<>(respDto, HttpStatus.OK);
     }
 
+    @Operation(
+        summary = "논리적 피드백 기록 단건 조회 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = AIChatLogListRespDto.class)))
+    @ApiResponse(responseCode = "202", description = "처리 중인 경우 (polling 필요)",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "아직 연습이 끝나지 않은 스피치인 경우",
+        content = @Content)
     @GetMapping("/{speech-id}/ai-chat-logs/{log-id}")
     public ResponseEntity<AIChatLogRespDto> getAIChatLog(
         @Parameter(name = "presentation-id")
@@ -350,12 +374,31 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, true);
 
+        if (!speech.getRecordDone()) {
+            throw new ConflictException("Record not done.");
+        }
+
         AIChatLog log = openAIService.getAIChatLogById(logId);
-        return new ResponseEntity<>(new AIChatLogRespDto(log), HttpStatus.OK);
+        if (!log.getIsDone()) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        } else {
+            return new ResponseEntity<>(new AIChatLogRespDto(log), HttpStatus.OK);
+        }
     }
 
+    @Operation(
+        summary = "논리적 피드백 요청 API",
+        description = "논리적 피드백 생성을 비동기적으로 요청하는 API로, 요청이 완료되면 202 상태코드를 반환한다. <br/>"
+            + "응답으로 반환된 논리적 피드백의 id로 단건 조회 요청을 하여 논리적 피드백 완료 여부를 확인할 수 있다."
+    )
+    @ApiResponse(responseCode = "202", description = "생성 완료 (polling 필요)",
+        content = @Content)
+    @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
+        content = @Content)
+    @ApiResponse(responseCode = "409", description = "아직 연습이 끝나지 않은 스피치인 경우",
+        content = @Content)
     @PostMapping("/{speech-id}/ai-chat-logs")
-    public ResponseEntity<Long> createAIChatLog(
+    public ResponseEntity<AIChatLogCreateResDto> createAIChatLog(
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -364,8 +407,12 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false);
 
+        if (!speech.getRecordDone()) {
+            throw new ConflictException("Record not done.");
+        }
+
         AIChatLog log = speechService.chatGPTPrompt(speech, requestDto.getPrompt());
 
-        return new ResponseEntity<>(log.getId(), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(new AIChatLogCreateResDto(log), HttpStatus.ACCEPTED);
     }
 }
