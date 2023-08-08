@@ -72,16 +72,19 @@ public class Speech extends BaseEntity {
     @Setter
     @Column(name = "relative_order", nullable = false)
     @ColumnDefault("1")
-    private int order;
+    private Integer order;
 
     @Column(nullable = true)
     private Integer feedbackCount;
 
-    private float avgLPM;
+    @Column(nullable = true)
+    private Float avgLPM;
 
-    private float pauseRatio;
+    @Column(nullable = true)
+    private Float pauseRatio;
 
-    private float avgF0;
+    @Column(nullable = true)
+    private Float avgF0;
 
     public void setRecordDone() {
         this.recordDone = true;
