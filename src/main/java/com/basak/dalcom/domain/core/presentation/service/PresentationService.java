@@ -12,6 +12,7 @@ import com.basak.dalcom.domain.profiles.data.UserProfile;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +52,7 @@ public class PresentationService {
         return presentationRepository.findPresentationsByUserProfile(userProfile);
     }
 
+    @Async
     @Transactional
     public void deleteById(Integer presentationId) {
         Presentation presentation = presentationRepository.findById(presentationId)

@@ -45,4 +45,8 @@ public class AnalysisRecordService {
             .build();
         analysisRecordRepository.save(record);
     }
+
+    public void deleteAnalysisRecords(List<AnalysisRecord> analysisRecords) {
+        analysisRecordRepository.deleteAllInBatch(analysisRecords);
+    }
 }

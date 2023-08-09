@@ -6,6 +6,7 @@ import com.basak.dalcom.config.NCPConfig;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
+import com.basak.dalcom.domain.core.analysis_result.service.AnalysisRecordService;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.audio_segment.service.AudioSegmentService;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
@@ -42,6 +43,7 @@ public class SpeechService {
 
     private final SpeechRepository speechRepository;
     private final PresentationRepository presentationRepository;
+    private final AnalysisRecordService analysisRecordService;
     private final PresignedURLService presignedURLService;
     private final S3Service s3Service;
     private final WasakService wasakService;
@@ -199,16 +201,13 @@ public class SpeechService {
         return speech;
     }
 
-    @Transactional
     public void deleteById(Integer speechId) {
         Speech speech = speechRepository.findSpeechById(speechId)
             .orElseThrow(() -> new NotFoundException("Speech"));
 
         // 연결된 오디오 세그먼트 삭제
         List<AudioSegment> audioSegments = speech.getAudioSegments();
-        for (AudioSegment audioSegment : audioSegments) {
-            audioSegmentService.deleteAudioSegment(audioSegment.getId());
-        }
+        audioSegmentService.deleteAudioSegments(audioSegments);
 
         // 연결된 분석 결과 삭제
         for (AnalysisType type : AnalysisType.values()) {
@@ -216,14 +215,20 @@ public class SpeechService {
                 + type.getValue() + ".json";
             s3Service.deleteByKey(key);
         }
+        analysisRecordService.deleteAnalysisRecords(speech.getAnalysisRecords());
 
         // full audio 삭제
         String key = speech.getPresentation().getId() + "/" + speech.getId() + "/full_audio.mp3";
         s3Service.deleteByKey(key);
 
+        // 참조 관계로 되어 있던 파생 스피치들과의 연결 해제
         speech.getReferencingSpeeches().forEach(referencingSpeech -> {
             referencingSpeech.disconnectReferenceSpeech();
         });
+
+        // AI Chat Log 삭제
+        List<AIChatLog> aiChatLogs = speech.getAiChatLogs();
+        openAIService.deleteAIChatLogs(aiChatLogs);
 
         // 스피치 삭제
         speechRepository.deleteById(speechId);

@@ -5,7 +5,6 @@ import com.basak.dalcom.domain.core.analysis_result.data.AnalysisRecord;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import java.util.List;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -22,6 +21,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
 @Builder
@@ -35,10 +36,12 @@ public class Speech extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne
     @JoinColumn(name = "presentation_id", nullable = false)
     private Presentation presentation;
 
+    @OnDelete(action = OnDeleteAction.NO_ACTION)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reference_speech_id")
     private Speech referenceSpeech;
@@ -67,16 +70,31 @@ public class Speech extends BaseEntity {
     private Boolean readyToChat;
 
     @Setter
-    @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "speech")
     private List<AudioSegment> audioSegments;
 
-    @OneToMany(mappedBy = "speech", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "speech")
     private List<AnalysisRecord> analysisRecords;
+
+    @OneToMany(mappedBy = "speech")
+    private List<AIChatLog> aiChatLogs;
 
     @Setter
     @Column(name = "relative_order", nullable = false)
     @ColumnDefault("1")
-    private int order;
+    private Integer order;
+
+    @Column(nullable = true)
+    private Integer feedbackCount;
+
+    @Column(nullable = true)
+    private Float avgLPM;
+
+    @Column(nullable = true)
+    private Float pauseRatio;
+
+    @Column(nullable = true)
+    private Float avgF0;
 
     public void setRecordDone() {
         this.recordDone = true;

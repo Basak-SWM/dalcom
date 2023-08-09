@@ -11,6 +11,7 @@ public enum AnalysisType {
     STT("STT"),
     DECIBEL("DECIBEL"),
     HERTZ("HERTZ"),
+    HERTZ_AVG("HERTZ_AVG"),
     LPM("LPM"),
     LPM_AVG("LPM_AVG"),
     PAUSE("PAUSE"),
