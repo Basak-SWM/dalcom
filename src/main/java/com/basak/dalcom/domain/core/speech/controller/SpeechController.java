@@ -281,7 +281,7 @@ public class SpeechController {
         try {
             Map<String, Object> sttObject = jsonParser.parseMap(body);
             String textScript = (String) sttObject.get("text");
-            AIChatLog log = speechService.initChatGPTPrompt(speech, textScript);
+            speechService.initChatGPTPrompt(speech, textScript);
         } catch (JsonParseException ex) {
             throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Invalid JSON format in speech with id :" + speech.getId());
