@@ -44,7 +44,7 @@ public class SpeechRespDto {
     @Schema(description = "LPM (속도) 평균")
     private Float avgLPM;
     @Schema(description = "휴지 비율")
-    private Float pauseRadio;
+    private Float pauseRatio;
     @Schema(description = "F0(목소리 톤) 평균")
     private Float avgF0;
 
@@ -61,7 +61,7 @@ public class SpeechRespDto {
         this.bookmarked = speech.getBookmarked();
         this.feedbackCount = speech.getFeedbackCount();
             this.avgLPM = speech.getAvgLPM();
-        this.pauseRadio = speech.getPauseRatio();
+        this.pauseRatio = speech.getPauseRatio();
             this.avgF0 = speech.getAvgF0();
 
         if (speech.getAudioSegments() != null) {
