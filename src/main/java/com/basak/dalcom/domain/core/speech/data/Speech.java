@@ -65,6 +65,10 @@ public class Speech extends BaseEntity {
     @ColumnDefault("0")
     private Boolean bookmarked;
 
+    @Column(nullable = false)
+    @ColumnDefault("0")
+    private Boolean readyToChat;
+
     @Setter
     @OneToMany(mappedBy = "speech")
     private List<AudioSegment> audioSegments;
@@ -104,5 +108,9 @@ public class Speech extends BaseEntity {
         List<AudioSegment> copied = List.copyOf(audioSegments);
         this.audioSegments.clear();
         this.audioSegments.addAll(copied);
+    }
+
+    public void setReadyToChat() {
+        this.readyToChat = true;
     }
 }

@@ -65,5 +65,8 @@ class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor 
         logger.log(Level.INFO, String.format("Response URI with status code %d: [%s] %s",
             response.getStatusCode().value(), request.getMethod(), request.getURI())
         );
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            logger.log(Level.INFO, "Error occurred: {0}", response.getBody().toString());
+        }
     }
 }

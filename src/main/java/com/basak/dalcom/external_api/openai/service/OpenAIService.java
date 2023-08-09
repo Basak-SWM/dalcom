@@ -3,6 +3,7 @@ package com.basak.dalcom.external_api.openai.service;
 import com.basak.dalcom.config.OpenAIConfig;
 import com.basak.dalcom.domain.common.exception.UnhandledException;
 import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
+import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.speech.data.AIChatLog;
 import com.basak.dalcom.domain.core.speech.data.AIChatLogRepository;
 import com.basak.dalcom.domain.core.speech.data.Speech;
@@ -15,13 +16,13 @@ import com.basak.dalcom.external_api.openai.service.dto.CompletionAPIRespDto.Mes
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -39,12 +40,63 @@ public class OpenAIService extends APIServiceImpl {
         this.aiChatLogRepository = aiChatLogRepository;
     }
 
+    public AIChatLog doFirstSystemPrompt(Speech speech,
+        final String[] descriptions, final String textScript) {
+        StringBuilder sb = new StringBuilder();
+        Arrays.stream(descriptions).forEach(sb::append);
+
+        sb.append("This is the script the student wrote : ");
+        sb.append(textScript + "\n\n");
+
+        sb.append("The outline of the speech that the student thinks is as follows : ");
+        sb.append(speech.getPresentation().getOutline() + "\n\n");
+
+        sb.append("The parts that students want to do well in the speech are as follows : ");
+        sb.append(speech.getPresentation().getCheckpoint());
+
+        String prompt = sb.toString();
+
+        AIChatLog emptyAIChatLog = createEmptyAIChatLog(
+            speech, prompt, OpenAIRole.SYSTEM
+        );
+
+        return doAsyncPrompt(emptyAIChatLog);
+    }
+
+    @Transactional
+    public Speech doDefaultUserPrompt(AIChatLog systemInitChatLog) {
+        Presentation presentation = systemInitChatLog.getSpeech().getPresentation();
+
+        List<String> prompts = new ArrayList<>(2);
+        if (presentation.getOutline() != null && !presentation.getOutline().isBlank()) {
+            prompts.add("전달된 스크립트는 개요의 내용을 잘 전달하고 있나요? 개요는 다음과 같습니다. : ");
+            prompts.add(presentation.getOutline() + "\n\n");
+        }
+        if (presentation.getCheckpoint() != null && !presentation.getCheckpoint().isBlank()) {
+            prompts.add("전달된 스크립트는 다음 요소를 만족하나요? : ");
+            prompts.add(presentation.getCheckpoint());
+        }
+
+        if (!prompts.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            prompts.forEach(sb::append);
+            String prompt = sb.toString();
+
+            Speech speech = systemInitChatLog.getSpeech();
+            AIChatLog firstUserPrompt = createEmptyAIChatLog(
+                speech, prompt, OpenAIRole.USER
+            );
+            doAsyncPrompt(firstUserPrompt);
+        }
+
+        return systemInitChatLog.getSpeech();
+    }
+
     @Override
     protected URL getUrl(String path) {
         return openAIConfig.getAPIEndpoint();
     }
 
-    @Async
     @Transactional
     public AIChatLog doAsyncPrompt(AIChatLog log) {
         String accountUuid = log.getSpeech().getPresentation()

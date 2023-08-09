@@ -3,6 +3,7 @@ package com.basak.dalcom.domain.core.speech.service;
 import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.config.NCPConfig;
+import com.basak.dalcom.config.OpenAIConfig;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
@@ -22,12 +23,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import lombok.AllArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,7 @@ public class SpeechService {
     private final AudioSegmentService audioSegmentService;
     private final OpenAIService openAIService;
     private final NCPConfig ncpConfig;
+    private final OpenAIConfig openAIConfig;
 
     /**
      * Speech 녹음 완료 후 분석 시작하는 서비스
@@ -78,7 +81,6 @@ public class SpeechService {
         wasakService.requestAnalysis2(speech.getPresentation().getId(), speech.getId());
     }
 
-
     /**
      * 최초 녹음 시작 시에 단일 Speech 생성하는 서비스
      */
@@ -104,6 +106,7 @@ public class SpeechService {
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
             .recordDone(false)
+            .readyToChat(false)
             .bookmarked(false)
             .referenceSpeech(referenceSpeech)
             .order(targetPresentation.getSpeechAutoIncrementValue())
@@ -167,7 +170,6 @@ public class SpeechService {
     public String getFullAudioUploadKey(Integer presentationId, Integer speechId, String ext) {
         return presentationId + "/" + speechId + "/full_audio." + ext;
     }
-
 
     public URL getAudioSegmentUploadUrl(String key) {
         return presignedURLService.getPresignedURLForUpload(key);
@@ -241,19 +243,18 @@ public class SpeechService {
         return emptyAIChatLog;
     }
 
-    public AIChatLog initChatGPTPrompt(Speech speech, String textScript) {
-        StringBuilder sb = new StringBuilder();
-        Arrays.stream(ROLE_DESCRIPTION_PROMPT).forEach(sb::append);
+    @Async
+    public void initChatGPTPrompt(Speech speech, String textScript) {
+        CompletableFuture
+            .supplyAsync(() -> openAIService.doFirstSystemPrompt(
+                speech, ROLE_DESCRIPTION_PROMPT, textScript)
+            ).thenApply((aiChatLog) -> openAIService.doDefaultUserPrompt(aiChatLog))
+            .thenAccept((readySpeech) -> updateSpeechReadyToChat(readySpeech));
+    }
 
-        sb.append("This is the script the student wrote : ");
-        sb.append(textScript);
-
-        String prompt = sb.toString();
-        AIChatLog emptyAIChatLog = openAIService.createEmptyAIChatLog(
-            speech, prompt, OpenAIRole.SYSTEM
-        );
-        openAIService.doAsyncPrompt(emptyAIChatLog);
-
-        return emptyAIChatLog;
+    @Transactional
+    public void updateSpeechReadyToChat(Speech speech) {
+        speech.setReadyToChat();
+        speechRepository.save(speech);
     }
 }
