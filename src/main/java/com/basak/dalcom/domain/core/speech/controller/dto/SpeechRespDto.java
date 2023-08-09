@@ -39,6 +39,16 @@ public class SpeechRespDto {
     @Schema(description = "북마크 여부")
     private Boolean bookmarked;
 
+    @Schema(description = "피드백 개수")
+    private Integer feedbackCount;
+    @Schema(description = "LPM (속도) 평균")
+    private Float avgLPM;
+    @Schema(description = "휴지 비율")
+    private Float pauseRadio;
+    @Schema(description = "F0(목소리 톤) 평균")
+    private Float avgF0;
+
+
     public SpeechRespDto(Speech speech) {
         this.id = speech.getId();
         this.userSymbol = speech.getUserSymbol();
@@ -49,6 +59,10 @@ public class SpeechRespDto {
             .format(FORMATTER);
         this.order = speech.getOrder();
         this.bookmarked = speech.getBookmarked();
+        this.feedbackCount = speech.getFeedbackCount();
+            this.avgLPM = speech.getAvgLPM();
+        this.pauseRadio = speech.getPauseRatio();
+            this.avgF0 = speech.getAvgF0();
 
         if (speech.getAudioSegments() != null) {
             this.audioSegments = speech.getAudioSegments().stream()
