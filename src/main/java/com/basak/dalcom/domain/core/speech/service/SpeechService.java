@@ -102,6 +102,7 @@ public class SpeechService {
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
             .recordDone(false)
+            .readyToChat(false)
             .bookmarked(false)
             .referenceSpeech(referenceSpeech)
             .order(targetPresentation.getSpeechAutoIncrementValue())
@@ -241,7 +242,13 @@ public class SpeechService {
         Arrays.stream(ROLE_DESCRIPTION_PROMPT).forEach(sb::append);
 
         sb.append("This is the script the student wrote : ");
-        sb.append(textScript);
+        sb.append(textScript + "\n\n");
+
+        sb.append("The outline of the speech that the student thinks is as follows : ");
+        sb.append(speech.getPresentation().getOutline() + "\n\n");
+
+        sb.append("The parts that students want to do well in the speech are as follows : ");
+        sb.append(speech.getPresentation().getCheckpoint());
 
         String prompt = sb.toString();
         AIChatLog emptyAIChatLog = openAIService.createEmptyAIChatLog(

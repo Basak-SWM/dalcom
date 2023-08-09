@@ -331,16 +331,9 @@ public class SpeechController {
         List<AIChatLog> uncompletedLogs = result.getUncompletedLogs();
         List<AIChatLog> systemLogs = result.getSystemLogs();
 
-        // 아직 초기화 프롬프트가 생성되지 않은 경우 폴링 필요
-        if (systemLogs.isEmpty()) {
+        // 아직 초기화가 되지 않은 경우 폴링 필요
+        if (!speech.getReadyToChat()) {
             return new ResponseEntity<>(HttpStatus.ACCEPTED);
-        }
-
-        // 사전 질의가 아직 완료되지 않은 경우 폴링 필요
-        for (AIChatLog systemLog : systemLogs) {
-            if (!systemLog.getIsDone()) {
-                return new ResponseEntity<>(HttpStatus.ACCEPTED);
-            }
         }
 
         AIChatLogListRespDto respDto = AIChatLogListRespDto.builder()
