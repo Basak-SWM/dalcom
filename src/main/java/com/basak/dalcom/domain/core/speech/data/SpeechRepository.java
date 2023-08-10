@@ -17,6 +17,6 @@ public interface SpeechRepository extends JpaRepository<Speech, Integer> {
     boolean existsByIdAndPresentationId(Integer speechId, Integer presentationId);
 
     @Modifying
-    @Query("UPDATE Speech s SET s.readyToChat = ?2 WHERE s.id = ?1")
-    int updateReadyToChatById(Integer speechId, boolean readyToChat);
+    @Query("UPDATE Speech s SET s.readyToChat = true WHERE s.id = ?1")
+    int updateReadyToChatById(Integer speechId);
 }

@@ -254,6 +254,6 @@ public class SpeechService {
 
     @Transactional
     public void updateSpeechReadyToChat(Speech speech) {
-        speechRepository.updateReadyToChatById(speech.getId(), true);
+        speechRepository.updateReadyToChatById(speech.getId());
     }
 }
