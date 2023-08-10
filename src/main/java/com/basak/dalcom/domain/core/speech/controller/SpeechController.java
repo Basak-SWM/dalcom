@@ -2,6 +2,7 @@ package com.basak.dalcom.domain.core.speech.controller;
 
 import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
+import com.basak.dalcom.domain.common.exception.UnhandledException;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
 import com.basak.dalcom.domain.core.analysis_result.service.AnalysisRecordService;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.json.JacksonJsonParser;
+import org.springframework.boot.json.JsonParseException;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -275,15 +277,15 @@ public class SpeechController {
         String key = speech.getPresentation().getId() + "/" + speech.getId() + "/analysis/STT.json";
         String strUrl = s3Service.uploadAsJson(key, body);
 
-//        // 논리적 피드백 준비
-//        try {
-//            Map<String, Object> sttObject = jsonParser.parseMap(body);
-//            String textScript = (String) sttObject.get("text");
-//            speechService.initChatGPTPrompt(speech, textScript);
-//        } catch (JsonParseException ex) {
-//            throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR,
-//                "Invalid JSON format in speech with id :" + speech.getId());
-//        }
+        // 논리적 피드백 준비
+        try {
+            Map<String, Object> sttObject = jsonParser.parseMap(body);
+            String textScript = (String) sttObject.get("text");
+            speechService.initChatGPTPrompt(speech, textScript);
+        } catch (JsonParseException ex) {
+            throw new UnhandledException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Invalid JSON format in speech with id :" + speech.getId());
+        }
 
         // 2차 분석 요청
         speechService.sttDoneAndStartAnalyze2(speech);
