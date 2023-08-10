@@ -60,10 +60,10 @@ class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor 
 
     private void describeResponse(HttpRequest request, ClientHttpResponse response)
         throws IOException {
-        log.info(String.format("Response URI with status code %d: [%s] %s",
-            response.getStatusCode().value(), request.getMethod(), request.getURI())
+        log.info("Response URI with status code {}: [{}] {}",
+            response.getStatusCode().value(), request.getMethod(), request.getURI()
         );
-        if (!response.getStatusCode().is2xxSuccessful() && log.isDebugEnabled()) {
+        if (!response.getStatusCode().is2xxSuccessful() && log.isInfoEnabled()) {
             log.error("Error occurred: {0}", response.getBody());
         }
     }
