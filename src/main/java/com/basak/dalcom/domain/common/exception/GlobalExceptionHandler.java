@@ -21,23 +21,38 @@ public class GlobalExceptionHandler {
     private final Environment environment;
 
     @ExceptionHandler(value = {Exception.class})
-    public ResponseEntity<?> unhandledException(Exception ex) {
+    public ResponseEntity<?> unexpectedException(Exception ex) {
         catchAsSentry(ex);
-        for (StackTraceElement el : ex.getStackTrace()) {
-            log.error(el.toString());
-        }
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Unexpected exception: {}" + ex.toString());
+        printStackTraceIfAllowed(ex);
+
+        Map<String, Object> body = new HashMap<>();
+        String message = isClientResponseAllowed() ? ex.toString() : "Ask to maintainers.";
+        body.put("message", message);
+
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = {UnhandledException.class})
+    public ResponseEntity<?> unhandledException(UnhandledException ex) {
+        catchAsSentry(ex);
+        log.error("Unhandled exception: {}" + ex.toString());
+        printStackTraceIfAllowed(ex);
+
+        Map<String, Object> body = new HashMap<>();
+        String message = isClientResponseAllowed() ? ex.toString() : "Ask to maintainers.";
+        body.put("message", message);
+
+        return new ResponseEntity<>(body, ex.getStatus());
     }
 
     @ExceptionHandler(value = {HandledException.class})
     public ResponseEntity<?> handledException(HandledException ex) {
         catchAsSentry(ex);
+        printStackTraceIfAllowed(ex);
+
         Map<String, Object> body = new HashMap<>();
         body.put("message", ex.getReason());
-
-        for (StackTraceElement el : ex.getStackTrace()) {
-            log.info(el.toString());
-        }
 
         return new ResponseEntity<>(body, ex.getStatus());
     }
@@ -52,5 +67,20 @@ public class GlobalExceptionHandler {
         if (Arrays.asList(environment.getActiveProfiles()).contains("staging")) {
             Sentry.captureException(ex);
         }
+    }
+
+    private void printStackTraceIfAllowed(Exception ex) {
+        if (log.isWarnEnabled()) {
+            log.error("Handled exception: {}", ex);
+            log.warn("Stack trace starts from here");
+            Arrays.stream(ex.getStackTrace()).forEach(st -> {
+                log.warn(st.toString());
+            });
+            log.warn("Stack trace finished.");
+        }
+    }
+
+    private boolean isClientResponseAllowed() {
+        return log.isInfoEnabled();
     }
 }
