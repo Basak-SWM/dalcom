@@ -2,8 +2,7 @@ package com.basak.dalcom.config;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.context.annotation.Bean;
@@ -42,9 +41,8 @@ public class RestTemplateConfig {
     }
 }
 
+@Slf4j
 class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor {
-
-    private static final Logger logger = Logger.getLogger(RestTemplateConfig.class.getName());
 
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body,
@@ -57,16 +55,16 @@ class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor 
     }
 
     private void describeRequest(HttpRequest request) {
-        logger.log(Level.INFO, "Request URI: {0}", request.getURI());
+        log.info("Request URI: {0}", request.getURI());
     }
 
     private void describeResponse(HttpRequest request, ClientHttpResponse response)
         throws IOException {
-        logger.log(Level.INFO, String.format("Response URI with status code %d: [%s] %s",
-            response.getStatusCode().value(), request.getMethod(), request.getURI())
+        log.info("Response URI with status code {}: [{}] {}",
+            response.getStatusCode().value(), request.getMethod(), request.getURI()
         );
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            logger.log(Level.INFO, "Error occurred: {0}", response.getBody().toString());
+        if (!response.getStatusCode().is2xxSuccessful() && log.isInfoEnabled()) {
+            log.error("Error occurred: {0}", response.getBody());
         }
     }
 }
