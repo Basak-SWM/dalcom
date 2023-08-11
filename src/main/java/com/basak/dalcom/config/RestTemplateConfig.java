@@ -55,7 +55,7 @@ class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor 
     }
 
     private void describeRequest(HttpRequest request) {
-        log.info("Request URI: {0}", request.getURI());
+        log.info("Request URI: {}", request.getURI());
     }
 
     private void describeResponse(HttpRequest request, ClientHttpResponse response)
@@ -64,7 +64,7 @@ class RequestResponseLoggingInterceptor implements ClientHttpRequestInterceptor 
             response.getStatusCode().value(), request.getMethod(), request.getURI()
         );
         if (!response.getStatusCode().is2xxSuccessful() && log.isInfoEnabled()) {
-            log.error("Error occurred: {0}", response.getBody());
+            log.error("Error occurred: {}", response.getBody());
         }
     }
 }

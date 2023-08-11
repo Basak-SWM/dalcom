@@ -67,9 +67,9 @@ public class Speech extends BaseEntity {
     @ColumnDefault("0")
     private Boolean bookmarked;
 
-    @Column(nullable = false)
-    @ColumnDefault("0")
-    private Boolean readyToChat;
+//    @Column(nullable = false)
+//    @ColumnDefault("0")
+//    private Boolean readyToChat;
 
     @Setter
     @OneToMany(mappedBy = "speech")
@@ -112,7 +112,7 @@ public class Speech extends BaseEntity {
         this.audioSegments.addAll(copied);
     }
 
-    public void setAIChatAvailable() {
-        this.readyToChat = true;
-    }
+//    public void setAIChatAvailable() {
+//        this.readyToChat = true;
+//    }
 }

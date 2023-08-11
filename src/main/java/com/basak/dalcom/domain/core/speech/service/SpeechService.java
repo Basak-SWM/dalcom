@@ -3,7 +3,6 @@ package com.basak.dalcom.domain.core.speech.service;
 import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.config.NCPConfig;
-import com.basak.dalcom.config.OpenAIConfig;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
@@ -52,7 +51,6 @@ public class SpeechService {
     private final AudioSegmentService audioSegmentService;
     private final OpenAIService openAIService;
     private final NCPConfig ncpConfig;
-    private final OpenAIConfig openAIConfig;
 
     /**
      * Speech 녹음 완료 후 분석 시작하는 서비스
@@ -106,7 +104,7 @@ public class SpeechService {
         Speech speech = Speech.builder()
             .presentation(targetPresentation)
             .recordDone(false)
-            .readyToChat(false)
+//            .readyToChat(false)
             .bookmarked(false)
             .referenceSpeech(referenceSpeech)
             .order(targetPresentation.getSpeechAutoIncrementValue())
@@ -244,16 +242,34 @@ public class SpeechService {
     }
 
     @Async
+    @Transactional
     public void initChatGPTPrompt(Speech speech, String textScript) {
         CompletableFuture
             .supplyAsync(() -> openAIService.doFirstSystemPrompt(
                 speech, ROLE_DESCRIPTION_PROMPT, textScript)
-            ).thenApply((aiChatLog) -> openAIService.doDefaultUserPrompt(aiChatLog))
-            .thenAccept((readySpeech) -> updateSpeechReadyToChat(readySpeech));
+            ).thenAccept((aiChatLog) -> openAIService.doDefaultUserPrompt(aiChatLog));
+//            ).thenApply((aiChatLog) -> openAIService.doDefaultUserPrompt(aiChatLog))
+//            .thenAccept((readySpeech) -> updateSpeechReadyToChat(readySpeech));
     }
 
-    public void updateSpeechReadyToChat(Speech speech) {
-        speech.setAIChatAvailable();
-        speechRepository.save(speech);
+//    @Transactional
+//    public void updateSpeechReadyToChat(Speech speech) {
+//        System.out.println("Before: " + speech.getId());
+//        speechRepository.updateReadyToChatById(speech.getId(), true);
+//        System.out.println("After: " + speech.getId());
+//    }
+
+    public boolean isReadyToChat(Speech speech) {
+        List<AIChatLog> logs = openAIService.getAIChatLogsBySpeech(speech);
+
+        // 시스템 프롬프트가 아예 없으면 아직 준비가 안 된 것으로 함
+        if (logs.isEmpty()) {
+            return false;
+        }
+
+        // 완료되지 않은 시스템 프롬프트가 있는 경우 채팅 준비가 안 된 것으로 함
+        return logs.stream()
+            .filter(log -> log.getRole() == OpenAIRole.SYSTEM && !log.getIsDone())
+            .toList().isEmpty();
     }
 }

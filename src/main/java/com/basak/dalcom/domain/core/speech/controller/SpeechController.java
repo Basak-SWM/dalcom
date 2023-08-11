@@ -162,6 +162,8 @@ public class SpeechController {
     @ApiResponse(responseCode = "200", description = "Presigned URL 반환 성공")
     @ApiResponse(responseCode = "404", description = "전달된 presentationId를 가지는 프레젠테이션이 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = UrlDto.class)))
+    @ApiResponse(responseCode = "409", description = "이미 녹음이 완료된 스피치인 경우",
+        content = @Content)
     @PostMapping("/{speech-id}/audio-segments/upload-url")
     public ResponseEntity<UrlDto> getAudioSegmentUploadPresignedUrl(
         @Parameter(name = "presentation-id")
@@ -169,7 +171,13 @@ public class SpeechController {
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId,
         @Valid @RequestBody PresignedUrlReqDto presignedUrlReqDto) {
-        speechService.checkExistence(presentationId, speechId);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+
+        if (speech.getRecordDone()) {
+            throw new ConflictException("Already record done.");
+        }
 
         String key = speechService.getAudioSegmentUploadKey(
             presentationId, speechId, presignedUrlReqDto.getExtension().getValue());
@@ -191,7 +199,13 @@ public class SpeechController {
         @PathVariable(name = "speech-id") Integer speechId,
         @Valid @RequestBody UrlDto requestDto
     ) {
-        speechService.checkExistence(presentationId, speechId);
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+
+        if (speech.getRecordDone()) {
+            throw new ConflictException("Already record done.");
+        }
 
         CreateAudioSegmentDto serviceDto = new CreateAudioSegmentDto(speechId, requestDto.getUrl());
         AudioSegment audioSegment = audioSegmentService.createAudioSegment(serviceDto);
@@ -330,15 +344,15 @@ public class SpeechController {
             throw new ConflictException("Record not done.");
         }
 
+        // 아직 초기화가 되지 않은 경우 폴링 필요
+        if (!speechService.isReadyToChat(speech)) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }
+
         AIChatLogRetrieveResult result = openAIService.getAIChatLogsOf(speech);
         List<AIChatLog> completedLogs = result.getCompletedLogs();
         List<AIChatLog> uncompletedLogs = result.getUncompletedLogs();
         List<AIChatLog> systemLogs = result.getSystemLogs();
-
-        // 아직 초기화가 되지 않은 경우 폴링 필요
-        if (!speech.getReadyToChat()) {
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
-        }
 
         AIChatLogListRespDto respDto = AIChatLogListRespDto.builder()
             .completedChatLogs(completedLogs.stream().map(AIChatLogRespDto::new).toList())
@@ -373,6 +387,11 @@ public class SpeechController {
 
         if (!speech.getRecordDone()) {
             throw new ConflictException("Record not done.");
+        }
+
+        // 아직 초기화가 되지 않은 경우 폴링 필요
+        if (!speechService.isReadyToChat(speech)) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }
 
         AIChatLog log = openAIService.getAIChatLogById(logId);
