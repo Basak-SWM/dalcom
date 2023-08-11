@@ -262,6 +262,12 @@ public class SpeechService {
     public boolean isReadyToChat(Speech speech) {
         List<AIChatLog> logs = openAIService.getAIChatLogsBySpeech(speech);
 
+        // 시스템 프롬프트가 아예 없으면 아직 준비가 안 된 것으로 함
+        if (logs.isEmpty()) {
+            return false;
+        }
+
+        // 완료되지 않은 시스템 프롬프트가 있는 경우 채팅 준비가 안 된 것으로 함
         return logs.stream()
             .filter(log -> log.getRole() == OpenAIRole.SYSTEM && !log.getIsDone())
             .toList().isEmpty();
