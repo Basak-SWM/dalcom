@@ -252,8 +252,8 @@ public class SpeechService {
             .thenAccept((readySpeech) -> updateSpeechReadyToChat(readySpeech));
     }
 
+    @Transactional
     public void updateSpeechReadyToChat(Speech speech) {
-        speech.setAIChatAvailable();
-        speechRepository.save(speech);
+        speechRepository.updateReadyToChatById(speech.getId());
     }
 }
