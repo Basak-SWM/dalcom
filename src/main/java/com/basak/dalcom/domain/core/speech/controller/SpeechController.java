@@ -332,15 +332,15 @@ public class SpeechController {
             throw new ConflictException("Record not done.");
         }
 
+        // 아직 초기화가 되지 않은 경우 폴링 필요
+        if (!speechService.isReadyToChat(speech)) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
+        }
+
         AIChatLogRetrieveResult result = openAIService.getAIChatLogsOf(speech);
         List<AIChatLog> completedLogs = result.getCompletedLogs();
         List<AIChatLog> uncompletedLogs = result.getUncompletedLogs();
         List<AIChatLog> systemLogs = result.getSystemLogs();
-
-        // 아직 초기화가 되지 않은 경우 폴링 필요
-        if (!speech.getReadyToChat()) {
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
-        }
 
         AIChatLogListRespDto respDto = AIChatLogListRespDto.builder()
             .completedChatLogs(completedLogs.stream().map(AIChatLogRespDto::new).toList())
@@ -375,6 +375,11 @@ public class SpeechController {
 
         if (!speech.getRecordDone()) {
             throw new ConflictException("Record not done.");
+        }
+
+        // 아직 초기화가 되지 않은 경우 폴링 필요
+        if (!speechService.isReadyToChat(speech)) {
+            return new ResponseEntity<>(HttpStatus.ACCEPTED);
         }
 
         AIChatLog log = openAIService.getAIChatLogById(logId);

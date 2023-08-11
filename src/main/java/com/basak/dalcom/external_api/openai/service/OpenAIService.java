@@ -175,4 +175,8 @@ public class OpenAIService extends APIServiceImpl {
     public void deleteAIChatLogs(List<AIChatLog> logs) {
         aiChatLogRepository.deleteAllInBatch(logs);
     }
+
+    public List<AIChatLog> getAIChatLogsBySpeech(Speech speech) {
+        return aiChatLogRepository.findAllBySpeech(speech);
+    }
 }
