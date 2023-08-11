@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -28,6 +29,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@DynamicUpdate
 @Entity
 @Table(name = "speech")
 public class Speech extends BaseEntity {
@@ -110,7 +112,7 @@ public class Speech extends BaseEntity {
         this.audioSegments.addAll(copied);
     }
 
-    public void setReadyToChat() {
+    public void setAIChatAvailable() {
         this.readyToChat = true;
     }
 }
