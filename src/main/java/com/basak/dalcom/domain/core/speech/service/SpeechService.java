@@ -200,6 +200,7 @@ public class SpeechService {
         return speech;
     }
 
+    @Transactional
     public void deleteById(Integer speechId) {
         Speech speech = speechRepository.findSpeechById(speechId)
             .orElseThrow(() -> new NotFoundException("Speech"));
