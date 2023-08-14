@@ -36,10 +36,10 @@ jobs:
       - name: Set Application Setting
         id: set-application-setting
         run: |
-          echo "Branch name: ${{ steps.extract_branch.outputs.branch_name }}"
-          if [ "${{ steps.extract_branch.outputs.branch_name }}" == "staging" ]; then
+          echo "Branch name: ${{ steps.extract_branch.outputs.branch }}"
+          if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
-          elif [ "${{ steps.extract_branch.outputs.branch_name }}" == "production" ]; then
+          elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
           else
             exit 1
@@ -119,9 +119,9 @@ jobs:
       - name: Set Application Setting
         id: set-application-setting
         run: |
-          if [ "${{ steps.extract_branch.outputs.branch_name }}" == "staging" ]; then
+          if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
-          elif [ "${{ steps.extract_branch.outputs.branch_name }}" == "production" ]; then
+          elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
           fi
 
