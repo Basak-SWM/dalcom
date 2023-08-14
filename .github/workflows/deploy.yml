@@ -113,7 +113,7 @@ jobs:
         id: set-application-setting
         run: |
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
-            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
+            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING }}"
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
           fi
