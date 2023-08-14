@@ -114,8 +114,14 @@ jobs:
         run: |
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING }}"
+            echo "length:"
+            echo "${{ steps.set-application-setting.outputs.application_setting }}" | awk '{print length}'
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
+            echo "length:"
+            echo "${{ steps.set-application-setting.outputs.application_setting }}" | awk '{print length}'
+          else
+            exit 1
           fi
 
       - name: Deploy on server
