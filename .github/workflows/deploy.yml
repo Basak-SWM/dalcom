@@ -40,13 +40,18 @@ jobs:
       - name: Set Application Setting
         id: set-application-setting
         run: |
-          cd ./src/main/resources
-          touch ./application-${{ steps.extract_branch.outputs.branch }}.yml
           if [ "${{ steps.set-branch-name.outputs.branch_name }}" == "staging" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
           elif [ "${{ steps.set-branch-name.outputs.branch_name }}" == "production" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
           fi
+
+      - name: Create application.yml
+        run: |
+          cd ./src/main/resources
+          touch ./application-${{ steps.extract_branch.outputs.branch }}.yml
+          echo "${{ steps.set-application-setting.outputs.application_setting }}" > ./application-${{ steps.extract_branch.outputs.branch }}.yml
+        shell: bash
 
       - name: Gradle Setup
         uses: gradle/gradle-build-action@v2.5.1
