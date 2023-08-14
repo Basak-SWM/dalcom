@@ -14,11 +14,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
       - name: Set Image Name
         id: set-image-name
         run: |
-          echo "::set-output name=full_image_name::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ github.base_ref }}"
-          echo "::set-output name=image_name::${{ env.ECR_REPOSITORY }}-${{ github.base_ref }}"
+          echo "::set-output name=full_image_name::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
+          echo "::set-output name=image_name::${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
 
       - name: Checkout
         uses: actions/checkout@v3.5.3
@@ -36,7 +41,7 @@ jobs:
         id: set-application-setting
         run: |
           cd ./src/main/resources
-          touch ./application-${{ github.base_ref }}.yml
+          touch ./application-${{ steps.extract_branch.outputs.branch }}.yml
           if [ "${{ steps.set-branch-name.outputs.branch_name }}" == "staging" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
           elif [ "${{ steps.set-branch-name.outputs.branch_name }}" == "production" ]; then
@@ -54,7 +59,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.base_ref }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ steps.extract_branch.outputs.branch }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -78,8 +83,8 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           DATE=$(date "+%y.%m.%d")
-          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:$DATE --build-arg PROFILE=${{ github.base_ref }} ./
-          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:latest --build-arg PROFILE=${{ github.base_ref }} ./
+          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:$DATE --build-arg PROFILE=${{ steps.extract_branch.outputs.branch }} ./
+          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:latest --build-arg PROFILE=${{ steps.extract_branch.outputs.branch }} ./
 
           docker push ${{ steps.set-image-name.outputs.full_image_name }}:$DATE
           docker push ${{ steps.set-image-name.outputs.full_image_name }}:latest
