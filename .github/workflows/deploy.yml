@@ -37,9 +37,9 @@ jobs:
         id: set-application-setting
         run: |
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
-            APPLICATION_SETTING="${{ secrets.APPLICATION_SETTING_STAGING }}
+            APPLICATION_SETTING="${{ secrets.APPLICATION_SETTING_STAGING }}"
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
-            APPLICATION_SETTING="${{ secrets.APPLICATION_SETTING_PRODUCTION }}
+            APPLICATION_SETTING="${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
           else
             exit 1
           fi
