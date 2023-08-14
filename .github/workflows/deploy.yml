@@ -2,7 +2,7 @@ name: CICD
 
 on:
   push:
-    branches: [ staging ]
+    branches: [ staging, production ]
 
 env:
   AWS_REGION: ap-northeast-2
@@ -14,6 +14,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Set Image Name
+        id: set-image-name
+        run: |
+          echo "::set-output name=full_image_name::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ github.base_ref }}"
+          echo "::set-output name=image_name::${{ env.ECR_REPOSITORY }}-${{ github.base_ref }}"
+
       - name: Checkout
         uses: actions/checkout@v3.5.3
 
@@ -22,12 +28,20 @@ jobs:
         with:
           java-version: '17'
 
-      - name: Create application.yml
+      - name: Set Branch Name
+        id: set-branch-name
+        run: echo "::set-output name=branch_name::${GITHUB_REF#refs/heads/}"
+
+      - name: Set Application Setting
+        id: set-application-setting
         run: |
           cd ./src/main/resources
-          touch ./application-staging.yml
-          echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
-        shell: bash
+          touch ./application-${{ github.base_ref }}.yml
+          if [ "${{ steps.set-branch-name.outputs.branch_name }}" == "staging" ]; then
+            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
+          elif [ "${{ steps.set-branch-name.outputs.branch_name }}" == "production" ]; then
+            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
+          fi
 
       - name: Gradle Setup
         uses: gradle/gradle-build-action@v2.5.1
@@ -40,7 +54,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.base_ref }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -59,25 +73,23 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push server-deploy image to Amazon ECR
-        if: contains(github.ref, 'staging')
-        id: build-image-staging
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           DATE=$(date "+%y.%m.%d")
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$DATE ./
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./
+          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:$DATE --build-arg PROFILE=${{ github.base_ref }} ./
+          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:latest --build-arg PROFILE=${{ github.base_ref }} ./
 
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DATE
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push ${{ steps.set-image-name.outputs.full_image_name }}:$DATE
+          docker push ${{ steps.set-image-name.outputs.full_image_name }}:latest
 
   deploy:
     needs: build
     name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy on staging server
-        if: contains(github.ref, 'staging')
+      - name: Deploy on server
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.AWS_HOST_DEPLOY }}
@@ -87,8 +99,8 @@ jobs:
           script: |
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
-            docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker container stop ${{ env.ECR_REPOSITORY }}-staging 2>/dev/null || true
-            docker container rm ${{ env.ECR_REPOSITORY }}-staging 2>/dev/null || true
-            docker run --net=host --restart on-failure:10 -d -p 8080:8080 --name ${{ env.ECR_REPOSITORY }}-staging ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker images | awk '$1 == "${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}
+            docker pull ${{ steps.set-image-name.outputs.full_image_name }}:latest
+            docker container stop ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
+            docker container rm ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
+            docker run --net=host --restart on-failure:10 -d -p 8080:8080 --name ${{ steps.set-image-name.outputs.image_name }} ${{ steps.set-image-name.outputs.full_image_name }}:latest
+            docker images | awk '$1 == "${{ steps.set-image-name.outputs.full_image_name }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}

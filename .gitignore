@@ -2,6 +2,7 @@ db
 mysql
 .env
 application-staging.yml
+application-production.yml
 
 HELP.md
 .gradle
