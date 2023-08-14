@@ -30,17 +30,19 @@ jobs:
       - name: Set Image Name
         id: set-image-name
         run: |
-          echo "::set-output name=full_image_name::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
-          echo "::set-output name=image_name::${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
+          echo "full_image_name=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
+          echo "image_name=${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
 
       - name: Set Application Setting
         id: set-application-setting
         run: |
           echo "Branch name: ${{ steps.extract_branch.outputs.branch }}"
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
-            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
+            echo "application_setting=${{ secrets.APPLICATION_SETTING_STAGING }}"  >> $GITHUB_OUTPUT
+            echo "branch - staging"
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
-            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
+            echo "application_setting=${{ secrets.APPLICATION_SETTING_PRODUCTION }}"  >> $GITHUB_OUTPUT
+            echo "branch - production"
           else
             exit 1
           fi
@@ -106,20 +108,16 @@ jobs:
       - name: Set Image Name
         id: set-image-name
         run: |
-          echo "::set-output name=full_image_name::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
-          echo "::set-output name=image_name::${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
+          echo "full_image_name=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
+          echo "image_name=${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
 
       - name: Set Application Setting
         id: set-application-setting
         run: |
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
-            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING }}"
-            echo "length:"
-            echo "${{ steps.set-application-setting.outputs.application_setting }}" | awk '{print length}'
+            echo "application_setting=${{ secrets.APPLICATION_SETTING }}"  >> $GITHUB_OUTPUT
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
-            echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
-            echo "length:"
-            echo "${{ steps.set-application-setting.outputs.application_setting }}" | awk '{print length}'
+            echo "application_setting=${{ secrets.APPLICATION_SETTING_PRODUCTION }}"  >> $GITHUB_OUTPUT
           else
             exit 1
           fi
