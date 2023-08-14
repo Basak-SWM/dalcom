@@ -36,16 +36,15 @@ jobs:
       - name: Set Application Setting
         id: set-application-setting
         run: |
-          echo "Branch name: ${{ steps.extract_branch.outputs.branch }}"
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
-            echo "application_setting=${{ secrets.APPLICATION_SETTING_STAGING }}"  >> $GITHUB_OUTPUT
-            echo "branch - staging"
+            APPLICATION_SETTING="${{ secrets.APPLICATION_SETTING_STAGING }}
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
-            echo "application_setting=${{ secrets.APPLICATION_SETTING_PRODUCTION }}"  >> $GITHUB_OUTPUT
-            echo "branch - production"
+            APPLICATION_SETTING="${{ secrets.APPLICATION_SETTING_PRODUCTION }}
           else
             exit 1
           fi
+          echo "application_setting=${APPLICATION_SETTING}" >> $GITHUB_OUTPUT
+          echo "${{ steps.set-application-setting.outputs.application_setting }}" | awk '{print length}'
 
       - name: Create application.yml
         run: |
@@ -111,17 +110,6 @@ jobs:
           echo "full_image_name=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
           echo "image_name=${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
 
-      - name: Set Application Setting
-        id: set-application-setting
-        run: |
-          if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
-            echo "application_setting=${{ secrets.APPLICATION_SETTING }}"  >> $GITHUB_OUTPUT
-          elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
-            echo "application_setting=${{ secrets.APPLICATION_SETTING_PRODUCTION }}"  >> $GITHUB_OUTPUT
-          else
-            exit 1
-          fi
-
       - name: Deploy on server
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -130,9 +118,6 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           script_stop: true
           script: |
-            echo "size: "
-            echo "${{ steps.set-application-setting.outputs.application_setting }}" | awk '{print length}'
-
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
             docker pull ${{ steps.set-image-name.outputs.full_image_name }}:latest
