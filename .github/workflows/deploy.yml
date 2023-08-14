@@ -2,7 +2,7 @@ name: CICD
 
 on:
   push:
-    branches: [ staging ]
+    branches: [ staging, production ]
 
 env:
   AWS_REGION: ap-northeast-2
@@ -22,11 +22,28 @@ jobs:
         with:
           java-version: '17'
 
-      - name: Create application.yml
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Set Image Name
+        id: set-image-name
+        run: |
+          echo "full_image_name=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
+          echo "image_name=${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
+
+      - name: Create application.yml (staging)
+        if: ${{ steps.extract_branch.outputs.branch }} == 'staging'
         run: |
           cd ./src/main/resources
-          touch ./application-staging.yml
-          echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
+          if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
+            touch ./application-staging.yml
+            echo "${{ secrets.APPLICATION_SETTING_STAGING }}" > ./application-staging.yml
+          elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
+            touch ./application-production.yml
+            echo "${{ secrets.APPLICATION_SETTING_PRODUCTION }}" > ./application-production.yml
+          fi
         shell: bash
 
       - name: Gradle Setup
@@ -40,7 +57,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ steps.extract_branch.outputs.branch }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -59,25 +76,34 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push server-deploy image to Amazon ECR
-        if: contains(github.ref, 'staging')
-        id: build-image-staging
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           DATE=$(date "+%y.%m.%d")
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$DATE ./
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./
+          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:$DATE --build-arg PROFILE=${{ steps.extract_branch.outputs.branch }} ./
+          docker build -t ${{ steps.set-image-name.outputs.full_image_name }}:latest --build-arg PROFILE=${{ steps.extract_branch.outputs.branch }} ./
 
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$DATE
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push ${{ steps.set-image-name.outputs.full_image_name }}:$DATE
+          docker push ${{ steps.set-image-name.outputs.full_image_name }}:latest
 
   deploy:
     needs: build
     name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy on staging server
-        if: contains(github.ref, 'staging')
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Set Image Name
+        id: set-image-name
+        run: |
+          echo "full_image_name=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
+          echo "image_name=${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
+
+      - name: Deploy on server
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.AWS_HOST_DEPLOY }}
@@ -87,8 +113,8 @@ jobs:
           script: |
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
-            docker pull ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker container stop ${{ env.ECR_REPOSITORY }}-staging 2>/dev/null || true
-            docker container rm ${{ env.ECR_REPOSITORY }}-staging 2>/dev/null || true
-            docker run --net=host --restart on-failure:10 -d -p 8080:8080 --name ${{ env.ECR_REPOSITORY }}-staging ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-            docker images | awk '$1 == "${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}
+            docker pull ${{ steps.set-image-name.outputs.full_image_name }}:latest
+            docker container stop ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
+            docker container rm ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
+            docker run --net=host --restart on-failure:10 -d -p 8080:8080 --name ${{ steps.set-image-name.outputs.image_name }} ${{ steps.set-image-name.outputs.full_image_name }}:latest
+            docker images | awk '$1 == "${{ steps.set-image-name.outputs.full_image_name }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}
