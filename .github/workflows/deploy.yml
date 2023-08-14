@@ -126,8 +126,9 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           script_stop: true
           script: |
-            echo "${{steps.set-application-setting.outputs.application_setting}}" | awk '{print length}'
-            
+            echo "size: "
+            echo "${{ steps.set-application-setting.outputs.application_setting }}" | awk '{print length}'
+
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
             docker pull ${{ steps.set-image-name.outputs.full_image_name }}:latest
