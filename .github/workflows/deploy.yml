@@ -42,11 +42,18 @@ jobs:
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
           fi
 
+      #      - name: Create application.yml
+      #        run: |
+      #          cd ./src/main/resources
+      #          touch ./application-${{ steps.extract_branch.outputs.branch }}.yml
+      #          echo "${{ steps.set-application-setting.outputs.application_setting }}" > ./application-${{ steps.extract_branch.outputs.branch }}.yml
+      #        shell: bash
+
       - name: Create application.yml
         run: |
           cd ./src/main/resources
-          touch ./application-${{ steps.extract_branch.outputs.branch }}.yml
-          echo "${{ steps.set-application-setting.outputs.application_setting }}" > ./application-${{ steps.extract_branch.outputs.branch }}.yml
+          touch ./application-staging.yml
+          echo "${{ secrets.APPLICATION_SETTING }}" > ./application-staging.yml
         shell: bash
 
       - name: Gradle Setup
