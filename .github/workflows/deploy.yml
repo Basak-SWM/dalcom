@@ -116,11 +116,19 @@ jobs:
         run: |
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
             echo "host=${{ secrets.AWS_HOST_DEPLOY_STAGING }}"  >> $GITHUB_OUTPUT
-            echo "ssh_key=${{ secrets.AWS_SSH_KEY_STAGING }}"  >> $GITHUB_OUTPUT
+            SSH_KEY=$(cat << EOF
+            ${{ secrets.AWS_SSH_KEY_STAGING }}
+            EOF
+            )
+            echo "ssh_key=${SSH_KEY}"  >> $GITHUB_OUTPUT
             echo "username=${{ secrets.AWS_SSH_USERNAME_STAGING }}"  >> $GITHUB_OUTPUT
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
             echo "host=${{ secrets.AWS_HOST_DEPLOY_PRODUCTION }}"  >> $GITHUB_OUTPUT
-            echo "ssh_key=${{ secrets.AWS_SSH_KEY_PRODUCTION }}"  >> $GITHUB_OUTPUT
+            SSH_KEY=$(cat << EOF
+            ${{ secrets.AWS_SSH_KEY_PRODUCTION }}
+            EOF
+            )
+            echo "ssh_key=${SSH_KEY}"  >> $GITHUB_OUTPUT
             echo "username=${{ secrets.AWS_SSH_USERNAME_PRODUCTION }}"  >> $GITHUB_OUTPUT
           fi
         shell: bash
