@@ -116,9 +116,12 @@ jobs:
         run: |
           if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
             echo "host=${{ secrets.AWS_HOST_DEPLOY_STAGING }}"  >> $GITHUB_OUTPUT
-            echo "ssh_key=${{ secrets.AWS_HOST_DEPLOY_STAGING }}"  >> $GITHUB_OUTPUT
+            echo "ssh_key=${{ secrets.AWS_SSH_KEY_STAGING }}"  >> $GITHUB_OUTPUT
+            echo "username=${{ secrets.AWS_SSH_USERNAME_STAGING }}"  >> $GITHUB_OUTPUT
           elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
             echo "host=${{ secrets.AWS_HOST_DEPLOY_PRODUCTION }}"  >> $GITHUB_OUTPUT
+            echo "ssh_key=${{ secrets.AWS_SSH_KEY_PRODUCTION }}"  >> $GITHUB_OUTPUT
+            echo "username=${{ secrets.AWS_SSH_USERNAME_PRODUCTION }}"  >> $GITHUB_OUTPUT
           fi
         shell: bash
 
@@ -126,7 +129,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ steps.set-aws.outputs.host }}
-          username: ${{ secrets.AWS_SSH_USERNAME }}
+          username: ${{ steps.set-aws.outputs.username }}
           key: ${{ steps.set-aws.outputs.ssh_key }}
           script_stop: true
           script: |
