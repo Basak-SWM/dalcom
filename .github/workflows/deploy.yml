@@ -97,8 +97,8 @@ jobs:
       - name: Deploy on server
         uses: appleboy/ssh-action@v0.1.10
         env:
-          FULL_IMAGE_NAME: ${{ steps.set-image-name.outputs.full_image_name }}
-          IMAGE_NAME: ${{ steps.set-image-name.outputs.image_name }}
+          - FULL_IMAGE_NAME: ${{ steps.set-image-name.outputs.full_image_name }}
+          - IMAGE_NAME: ${{ steps.set-image-name.outputs.image_name }}
         with:
           host: ${{ secrets.AWS_HOST_DEPLOY }}
           username: ${{ secrets.AWS_SSH_USERNAME }}
