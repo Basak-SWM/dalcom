@@ -36,10 +36,13 @@ jobs:
       - name: Set Application Setting
         id: set-application-setting
         run: |
+          echo "Branch name: ${{ steps.extract_branch.outputs.branch_name }}"
           if [ "${{ steps.extract_branch.outputs.branch_name }}" == "staging" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_STAGING }}"
           elif [ "${{ steps.extract_branch.outputs.branch_name }}" == "production" ]; then
             echo "::set-output name=application_setting::${{ secrets.APPLICATION_SETTING_PRODUCTION }}"
+          else
+            exit 1
           fi
 
       #      - name: Create application.yml
