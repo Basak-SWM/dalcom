@@ -124,4 +124,4 @@ jobs:
             docker container stop ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
             docker container rm ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
             docker run --net=host --restart on-failure:10 -d -p 8080:8080 --name ${{ steps.set-image-name.outputs.image_name }} ${{ steps.set-image-name.outputs.full_image_name }}:latest
-            docker images | awk '$1 == "${{ steps.set-image-name.outputs.full_image_name }}${{ steps.set-image-name.outputs.full_image_name }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}
+            docker images | awk '$1 == "${{ steps.set-image-name.outputs.full_image_name }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}
