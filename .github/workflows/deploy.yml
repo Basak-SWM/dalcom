@@ -33,13 +33,14 @@ jobs:
           echo "full_image_name=${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
           echo "image_name=${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"  >> $GITHUB_OUTPUT
 
-      - name: Create application.yml
+      - name: Create application.yml (staging)
+        if: ${{ steps.extract_branch.outputs.branch }} == 'staging'
         run: |
           cd ./src/main/resources
-          if [ "${{ steps.extract-branch.outputs.branch }}" == "staging" ]; then
+          if [ "${{ steps.extract_branch.outputs.branch }}" == "staging" ]; then
             touch ./application-staging.yml
             echo "${{ secrets.APPLICATION_SETTING_STAGING }}" > ./application-staging.yml
-          elif [ "${{ steps.extract-branch.outputs.branch }}" == "production" ]; then
+          elif [ "${{ steps.extract_branch.outputs.branch }}" == "production" ]; then
             touch ./application-production.yml
             echo "${{ secrets.APPLICATION_SETTING_PRODUCTION }}" > ./application-production.yml
           fi
