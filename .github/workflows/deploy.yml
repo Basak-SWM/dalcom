@@ -64,7 +64,7 @@ jobs:
         run: gradle build -x test
 
       - name: Configure AWS Credentials (staging)
-        if: contains(steps.extract_branch.outputs.branch, 'staging)
+        if: contains(github.ref, 'staging)
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_STAGING }}
@@ -72,7 +72,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Configure AWS Credentials (production)
-        if: contains(steps.extract_branch.outputs.branch, 'production)
+        if: contains(github.ref, 'production)
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PRODUCTION }}
