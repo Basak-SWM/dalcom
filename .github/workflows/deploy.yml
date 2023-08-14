@@ -94,11 +94,19 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Set Image Name
+        id: set-image-name
+        run: |
+          echo "::set-output name=full_image_name::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
+          echo "::set-output name=image_name::${{ env.ECR_REPOSITORY }}-${{ steps.extract_branch.outputs.branch }}"
+
       - name: Deploy on server
         uses: appleboy/ssh-action@v0.1.10
-        env:
-          - FULL_IMAGE_NAME: ${{ steps.set-image-name.outputs.full_image_name }}
-          - IMAGE_NAME: ${{ steps.set-image-name.outputs.image_name }}
         with:
           host: ${{ secrets.AWS_HOST_DEPLOY }}
           username: ${{ secrets.AWS_SSH_USERNAME }}
@@ -107,8 +115,8 @@ jobs:
           script: |
             password=$(aws ecr get-login-password --region ${{ env.AWS_REGION }})
             docker login --username AWS --password $password ${{ env.ECR_REGISTRY }}
-            docker pull ${{ FULL_IMAGE_NAME }}:latest
-            docker container stop ${{ IMAGE_NAME }} 2>/dev/null || true
-            docker container rm ${{ IMAGE_NAME }} 2>/dev/null || true
-            docker run --net=host --restart on-failure:10 -d -p 8080:8080 --name ${{ IMAGE_NAME }} ${{ FULL_IMAGE_NAME }}:latest
-            docker images | awk '$1 == "${{ FULL_IMAGE_NAME }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}
+            docker pull ${{ steps.set-image-name.outputs.full_image_name }}${{ steps.set-image-name.outputs.full_image_name }}:latest
+            docker container stop ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
+            docker container rm ${{ steps.set-image-name.outputs.image_name }} 2>/dev/null || true
+            docker run --net=host --restart on-failure:10 -d -p 8080:8080 --name ${{ steps.set-image-name.outputs.image_name }} ${{ steps.set-image-name.outputs.full_image_name }}${{ steps.set-image-name.outputs.full_image_name }}:latest
+            docker images | awk '$1 == "${{ steps.set-image-name.outputs.full_image_name }}${{ steps.set-image-name.outputs.full_image_name }}" && $2 == "<none>" {print $3}' | xargs -I {} docker rmi {}
