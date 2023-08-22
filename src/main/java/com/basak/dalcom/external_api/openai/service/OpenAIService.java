@@ -77,17 +77,20 @@ public class OpenAIService extends APIServiceImpl {
             prompts.add(presentation.getCheckpoint());
         }
 
-        if (!prompts.isEmpty()) {
-            StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
+        String prompt = null;
+        if (prompts.isEmpty()) {
+            prompt = "지금부터 스피치 스크립트 작성을 도와줘.";
+        } else {
             prompts.forEach(sb::append);
-            String prompt = sb.toString();
-
-            Speech speech = systemInitChatLog.getSpeech();
-            AIChatLog firstUserPrompt = createEmptyAIChatLog(
-                speech, prompt, OpenAIRole.USER
-            );
-            doAsyncPrompt(firstUserPrompt);
+            prompt = sb.toString();
         }
+
+        Speech speech = systemInitChatLog.getSpeech();
+        AIChatLog firstUserPrompt = createEmptyAIChatLog(
+            speech, prompt, OpenAIRole.USER
+        );
+        doAsyncPrompt(firstUserPrompt);
 
         return systemInitChatLog.getSpeech();
     }

@@ -269,8 +269,15 @@ public class SpeechService {
         }
 
         // 완료되지 않은 시스템 프롬프트가 있는 경우 채팅 준비가 안 된 것으로 함
-        return logs.stream()
+        Boolean hasNotCompletedSystemPrompts = logs.stream()
             .filter(log -> log.getRole() == OpenAIRole.SYSTEM && !log.getIsDone())
             .toList().isEmpty();
+
+        // 완료된 유저 프롬프트가 하나도 없는 경우 채팅 준비가 안 된 것으로 함 (outline+checkpoint 또는 기본 프롬프트)
+        Boolean hasCompletedUserPrompts = !(logs.stream()
+            .filter(log -> log.getRole() == OpenAIRole.USER && log.getIsDone())
+            .toList().isEmpty());
+
+        return hasNotCompletedSystemPrompts && hasCompletedUserPrompts;
     }
 }
