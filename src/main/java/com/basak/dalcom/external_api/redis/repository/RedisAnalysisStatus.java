@@ -10,7 +10,7 @@ import org.springframework.data.redis.core.RedisHash;
 @Builder
 @Data
 @AllArgsConstructor
-@RedisHash(value = "analysis_result")
+@RedisHash(value = "analysis_status")
 public class RedisAnalysisStatus {
 
     @Id

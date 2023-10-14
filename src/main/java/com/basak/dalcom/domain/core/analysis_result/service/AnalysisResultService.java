@@ -22,7 +22,7 @@ public class AnalysisResultService extends DynamoDBService {
     }
 
     private String getRedisKey(Integer speechId) {
-        return String.format("analysis_%d_STATUS", speechId);
+        return String.format("%d", speechId);
     }
 
     public Optional<RedisAnalysisStatus> getAnalysisStatus(Integer speechId) {
