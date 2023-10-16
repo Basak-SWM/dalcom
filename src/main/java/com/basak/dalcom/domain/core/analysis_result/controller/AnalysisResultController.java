@@ -1,6 +1,9 @@
 package com.basak.dalcom.domain.core.analysis_result.controller;
 
+import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.analysis_result.service.AnalysisResultService;
+import com.basak.dalcom.domain.core.speech.data.Speech;
+import com.basak.dalcom.domain.core.speech.service.SpeechService;
 import com.basak.dalcom.external_api.redis.repository.RedisAnalysisStatus;
 import java.util.Map;
 import java.util.Optional;
@@ -16,14 +19,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/analysis")
+@RequestMapping("/api/v1/presentations/{presentation-id}/speeches/{speech-id}/analysis-result")
 @RestController
 public class AnalysisResultController {
 
     private final AnalysisResultService analysisResultService;
 
-    @GetMapping("/{speech-id}")
+    private final SpeechService speechService;
+
+    @GetMapping("")
     public ResponseEntity<Map<String, Object>> getAnalysisResult(
+        @PathVariable(name = "presentation-id") Integer presentationId,
         @PathVariable(name = "speech-id") Integer speechId) {
         // 캐시에 있는지 확인
         Optional<RedisAnalysisStatus> cacheStatus = analysisResultService.getAnalysisStatus(
@@ -88,8 +94,22 @@ public class AnalysisResultController {
         return new ResponseEntity(HttpStatus.ACCEPTED);
     }
 
-    @PostMapping("/{speech-id}")
-    public String createAnalysisResult(@PathVariable(name = "speech-id") String speechId) {
-        return "test";
+    @PostMapping("")
+    public ResponseEntity<Void> createAnalysisResult(
+        @PathVariable(name = "presentation-id") Integer presentationId,
+        @PathVariable(name = "speech-id") Integer speechId) {
+        speechService.checkExistence(presentationId, speechId);
+
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+
+        if (speech.getRecordDone()) {
+            throw new ConflictException("Already record done.");
+        }
+
+        // TODO : 실제로 스타트 람다 요청하는 코드 필요
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

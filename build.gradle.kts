@@ -36,6 +36,7 @@ dependencies {
     implementation("io.sentry:sentry-spring-boot-starter:6.25.2")
     implementation("org.springframework.boot:spring-boot-starter-data-redis:3.1.2")
     implementation("com.amazonaws:aws-java-sdk-dynamodb:1.12.472")
+    implementation("software.amazon.awssdk:lambda:2.20.109")
     compileOnly("org.projectlombok:lombok")
     runtimeOnly("com.mysql:mysql-connector-j")
     annotationProcessor("org.projectlombok:lombok")

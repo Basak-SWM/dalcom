@@ -23,6 +23,9 @@ aws:
   dynamodb:
     table:
       name: "tokpeanut-staging-dynamodb"
+  lambda:
+    analysis-start:
+      name: "arn:aws:lambda:ap-northeast-2:906389837735:function:yubin-dalcom-test"
 
 cloud:
   aws:
