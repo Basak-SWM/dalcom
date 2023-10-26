@@ -22,10 +22,10 @@ public class AccountRespDto {
     @Schema(description = "전화번호", type = "string", example = "010-1234-5678")
     private final String phoneNumber;
 
-    @Schema(description = "사용자 정보", implementation = UserProfileRespDto.class)
+    @Schema(description = "사용자 정보", implementation = UserProfileRespDto.class, nullable = true)
     private UserProfileRespDto userProfile = null;
 
-    @Schema(description = "코치 정보", implementation = CoachProfileRespDto.class)
+    @Schema(description = "코치 정보", implementation = CoachProfileRespDto.class, nullable = true)
     private CoachProfileRespDto coachProfile = null;
 
     public AccountRespDto(Account account) {

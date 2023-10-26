@@ -51,12 +51,25 @@ public class AccountController {
         return new ResponseEntity<>(new AccountRespDto(createdAccount), HttpStatus.CREATED);
     }
 
+    @Operation(
+        summary = "코치 회원 가입 API"
+    )
+    @ApiResponse(responseCode = "201", description = "회원 가입 성공",
+        content = @Content(schema = @Schema(implementation = AccountRespDto.class)))
+    @ApiResponse(responseCode = "409", description = "이미 사용중인 username, email, phoneNumber인 경우", content = @Content)
     @PostMapping("/coach/signup")
-    public ResponseEntity<Void> coachSignup(@Validated @RequestBody CoachSignupReqDto dto) {
+    public ResponseEntity<AccountRespDto> coachSignup(
+        @Validated @RequestBody CoachSignupReqDto dto) {
         Account createdAccount = accountService.coachSignUp(new CoachSignupDto(dto));
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(new AccountRespDto(createdAccount), HttpStatus.CREATED);
     }
 
+    @Operation(
+        summary = "로그인 API"
+    )
+    @ApiResponse(responseCode = "200", description = "로그인 성공",
+        content = @Content(schema = @Schema(implementation = AccountRespDto.class)))
+    @ApiResponse(responseCode = "401", description = "로그인 실패", content = @Content)
     @PostMapping("/login")
     public ResponseEntity<Void> login(@RequestBody LoginDto dto, HttpServletRequest request)
         throws Exception {
@@ -87,6 +100,11 @@ public class AccountController {
     }
 
 
+    @Operation(
+        summary = "본인 정보 확인 API"
+    )
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+        content = @Content(schema = @Schema(implementation = AccountRespDto.class)))
     @GetMapping("/me")
     public ResponseEntity<AccountRespDto> me(
         @AuthenticationPrincipal DalcomUserDetails userDetails) {
