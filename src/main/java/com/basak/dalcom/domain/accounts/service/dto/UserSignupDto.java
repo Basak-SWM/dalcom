@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class UserSignupDto {
 
+    private String username;
     private String nickname;
 
     private String email;
@@ -23,6 +24,7 @@ public class UserSignupDto {
     private Boolean voiceUsageAgreement;
 
     public UserSignupDto(UserSignupReqDto dto) {
+        this.username = dto.getUsername();
         this.nickname = dto.getNickname();
         this.email = dto.getEmail();
         this.phoneNumber = dto.getPhoneNumber();

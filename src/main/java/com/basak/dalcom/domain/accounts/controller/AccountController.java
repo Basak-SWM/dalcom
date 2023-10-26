@@ -33,7 +33,7 @@ public class AccountController {
     )
     @ApiResponse(responseCode = "201", description = "회원 가입 성공",
         content = @Content(schema = @Schema(implementation = AccountRespDto.class)))
-    @ApiResponse(responseCode = "409", description = "이미 사용중인 email이나 phoneNumber인 경우", content = @Content)
+    @ApiResponse(responseCode = "409", description = "이미 사용중인 username, email, phoneNumber인 경우", content = @Content)
     @PostMapping("/user/signup")
     public ResponseEntity<AccountRespDto> userSignup(@Validated @RequestBody UserSignupReqDto dto) {
         Account createdAccount = accountService.userSignUp(new UserSignupDto(dto));

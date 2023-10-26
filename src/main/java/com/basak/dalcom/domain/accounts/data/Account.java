@@ -1,6 +1,7 @@
 package com.basak.dalcom.domain.accounts.data;
 
 import com.basak.dalcom.domain.common.BaseEntity;
+import com.basak.dalcom.domain.profiles.data.CoachProfile;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -31,12 +32,18 @@ public class Account extends BaseEntity {
     @Column(columnDefinition = "CHAR(36)", unique = true, nullable = false)
     private String uuid;
 
+    @Column(unique = true, nullable = false)
+    private String username;
+
     @Column(nullable = false)
     @Convert(converter = AccountRoleConverter.class)
     private AccountRole role;
 
     @OneToOne(mappedBy = "account")
     private UserProfile userProfile;
+
+    @OneToOne(mappedBy = "account")
+    private CoachProfile coachProfile;
 
     @Column(nullable = false, length = 20)
     private String nickname;

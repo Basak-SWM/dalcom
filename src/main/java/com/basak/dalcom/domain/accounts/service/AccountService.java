@@ -31,12 +31,13 @@ public class AccountService {
     @Transactional
     public Account userSignUp(UserSignupDto requestDto) {
         uniqueValueDuplicationCheck(accountRepository,
-            requestDto.getEmail(), requestDto.getPhoneNumber());
+            requestDto.getUsername(), requestDto.getEmail(), requestDto.getPhoneNumber());
 
         // Account 생성
         Account account = Account.builder()
             .role(AccountRole.USER)
             .uuid(getUUID())
+            .username(requestDto.getUsername())
             .nickname(requestDto.getNickname())
             .email(requestDto.getEmail())
             .phoneNumber(requestDto.getPhoneNumber())

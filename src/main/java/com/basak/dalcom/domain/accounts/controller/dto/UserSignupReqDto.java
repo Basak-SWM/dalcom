@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,10 @@ import org.hibernate.validator.constraints.Length;
 @AllArgsConstructor
 @Getter
 public class UserSignupReqDto {
+
+    @Schema(description = "로그인 ID", type = "string", example = "qkrdbqls1001")
+    @NotBlank(message = "로그인 ID는 필수 입력 값입니다.")
+    private String username;
 
     @Schema(description = "닉네임", type = "string", example = "박유빈")
     @NotBlank(message = "닉네임은 필수 입력 값입니다.")
@@ -30,9 +35,10 @@ public class UserSignupReqDto {
 
     @Schema(description = "비밀번호", type = "string", example = "mysecretpw777!")
     @NotEmpty(message = "비밀번호는 필수 입력 값입니다.")
-    @Length(min = 4, max = 16, message = "비밀번호는 4자 이상, 16자 이하로 입력해주세요.")
+    @Length(min = 4, max = 30, message = "비밀번호는 4자 이상, 30자 이하로 입력해주세요.")
     private String password;
 
     @Schema(description = "음성 데이터 활용 동의 여부", type = "boolean", example = "true")
+    @NotNull(message = "음성 데이터 활용 동의 여부는 필수 입력 값입니다.")
     private Boolean voiceUsageAgreement;
 }
