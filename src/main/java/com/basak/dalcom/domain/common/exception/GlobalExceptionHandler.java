@@ -20,18 +20,18 @@ public class GlobalExceptionHandler {
 
     private final Environment environment;
 
-    @ExceptionHandler(value = {Exception.class})
-    public ResponseEntity<?> unexpectedException(Exception ex) {
-        catchAsSentry(ex);
-        log.error("Unexpected exception: {}" + ex.toString());
-        printStackTraceIfAllowed(ex);
-
-        Map<String, Object> body = new HashMap<>();
-        String message = isClientResponseAllowed() ? ex.toString() : "Ask to maintainers.";
-        body.put("message", message);
-
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+//    @ExceptionHandler(value = {Exception.class})
+//    public ResponseEntity<?> unexpectedException(Exception ex) {
+//        catchAsSentry(ex);
+//        log.error("Unexpected exception: {}" + ex.toString());
+//        printStackTraceIfAllowed(ex);
+//
+//        Map<String, Object> body = new HashMap<>();
+//        String message = isClientResponseAllowed() ? ex.toString() : "Ask to maintainers.";
+//        body.put("message", message);
+//
+//        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
 
     @ExceptionHandler(value = {UnhandledException.class})
     public ResponseEntity<?> unhandledException(UnhandledException ex) {
@@ -60,7 +60,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {MethodArgumentNotValidException.class})
     public ResponseEntity<?> handleControllerValidationException(
         MethodArgumentNotValidException ex) {
-        return new ResponseEntity<>(ex.getBindingResult().getAllErrors(), HttpStatus.BAD_REQUEST);
+        FieldExceptionDto dto = new FieldExceptionDto(ex);
+        return new ResponseEntity<>(dto.getDtoList(), HttpStatus.BAD_REQUEST);
     }
 
     private void catchAsSentry(Exception ex) {

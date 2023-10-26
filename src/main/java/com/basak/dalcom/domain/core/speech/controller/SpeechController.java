@@ -37,13 +37,13 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.json.JacksonJsonParser;
 import org.springframework.boot.json.JsonParseException;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -172,7 +172,7 @@ public class SpeechController {
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId,
-        @Valid @RequestBody PresignedUrlReqDto presignedUrlReqDto) {
+        @Validated @RequestBody PresignedUrlReqDto presignedUrlReqDto) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
@@ -199,7 +199,7 @@ public class SpeechController {
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId,
-        @Valid @RequestBody UrlDto requestDto
+        @Validated @RequestBody UrlDto requestDto
     ) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
