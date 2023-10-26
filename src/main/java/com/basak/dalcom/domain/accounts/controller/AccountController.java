@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "accounts", description = "회원 관련 API")
 @AllArgsConstructor
 @RestController
-@Validated
 @RequestMapping("/api/v1/accounts")
 public class AccountController {
 
@@ -37,7 +35,7 @@ public class AccountController {
         content = @Content(schema = @Schema(implementation = AccountRespDto.class)))
     @ApiResponse(responseCode = "409", description = "이미 사용중인 email이나 phoneNumber인 경우", content = @Content)
     @PostMapping("/user/signup")
-    public ResponseEntity<AccountRespDto> userSignup(@Valid @RequestBody UserSignupReqDto dto) {
+    public ResponseEntity<AccountRespDto> userSignup(@Validated @RequestBody UserSignupReqDto dto) {
         Account createdAccount = accountService.userSignUp(new UserSignupDto(dto));
         return new ResponseEntity<>(new AccountRespDto(createdAccount), HttpStatus.CREATED);
     }
