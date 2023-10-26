@@ -12,11 +12,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserProfileRespDto {
 
-    private Integer id;
     private Boolean voiceUsageAgreement;
 
     public UserProfileRespDto(UserProfile userProfile) {
-        this.id = userProfile.getId();
         this.voiceUsageAgreement = userProfile.isVoiceUsageAgreement();
     }
 }

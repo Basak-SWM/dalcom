@@ -13,11 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
-import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +46,7 @@ public class PresentationController {
         content = @Content)
     @PostMapping("")
     public ResponseEntity<PresentationRespDto> createPresentation(
-        @Valid @RequestBody PresentationCreateDto dto) {
+        @Validated @RequestBody PresentationCreateDto dto) {
         PresentationCreateDto.PresentationDto presentationDto = dto.getPresentation();
         UUID uuid = UUID.fromString(dto.getAccountUuid());
 
