@@ -1,10 +1,12 @@
 package com.basak.dalcom.domain.accounts.controller;
 
 import com.basak.dalcom.domain.accounts.controller.dto.AccountRespDto;
+import com.basak.dalcom.domain.accounts.controller.dto.CoachSignupReqDto;
 import com.basak.dalcom.domain.accounts.controller.dto.LoginDto;
 import com.basak.dalcom.domain.accounts.controller.dto.UserSignupReqDto;
 import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
+import com.basak.dalcom.domain.accounts.service.dto.CoachSignupDto;
 import com.basak.dalcom.domain.accounts.service.dto.UserSignupDto;
 import com.basak.dalcom.spring.security.service.DalcomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +51,13 @@ public class AccountController {
         return new ResponseEntity<>(new AccountRespDto(createdAccount), HttpStatus.CREATED);
     }
 
-    @PostMapping("/user/login")
+    @PostMapping("/coach/signup")
+    public ResponseEntity<Void> coachSignup(@Validated @RequestBody CoachSignupReqDto dto) {
+        Account createdAccount = accountService.coachSignUp(new CoachSignupDto(dto));
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
     public ResponseEntity<Void> login(@RequestBody LoginDto dto, HttpServletRequest request)
         throws Exception {
         // 세션 키가 없는 경우 빈 세션 생성
@@ -79,7 +87,7 @@ public class AccountController {
     }
 
 
-    @GetMapping("/user/me")
+    @GetMapping("/me")
     public ResponseEntity<AccountRespDto> me(
         @AuthenticationPrincipal DalcomUserDetails userDetails) {
         if (userDetails == null) {

@@ -1,6 +1,8 @@
 package com.basak.dalcom.domain.accounts.controller.dto;
 
 import com.basak.dalcom.domain.accounts.data.Account;
+import com.basak.dalcom.domain.accounts.data.AccountRole;
+import com.basak.dalcom.domain.profiles.controllers.dto.CoachProfileRespDto;
 import com.basak.dalcom.domain.profiles.controllers.dto.UserProfileRespDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -21,13 +23,21 @@ public class AccountRespDto {
     private final String phoneNumber;
 
     @Schema(description = "사용자 정보", implementation = UserProfileRespDto.class)
-    private final UserProfileRespDto userProfile;
+    private UserProfileRespDto userProfile = null;
+
+    @Schema(description = "코치 정보", implementation = CoachProfileRespDto.class)
+    private CoachProfileRespDto coachProfile = null;
 
     public AccountRespDto(Account account) {
         this.uuid = account.getUuid();
         this.nickname = account.getNickname();
         this.email = account.getEmail();
         this.phoneNumber = account.getPhoneNumber();
-        this.userProfile = new UserProfileRespDto(account.getUserProfile());
+        if ((account.getRole() == AccountRole.USER) && (account.getUserProfile() != null)) {
+            this.userProfile = new UserProfileRespDto(account.getUserProfile());
+        }
+        if ((account.getRole() == AccountRole.COACH) && (account.getCoachProfile() != null)) {
+            this.coachProfile = new CoachProfileRespDto(account.getCoachProfile());
+        }
     }
 }

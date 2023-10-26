@@ -58,6 +58,22 @@ public class Account extends BaseEntity {
     private String password;
 
     public void setUserProfile(UserProfile userProfile) {
+        if (this.userProfile != null) {
+            throw new IllegalStateException("이미 userProfile이 연결되어 있습니다.");
+        } else if (this.role == AccountRole.COACH) {
+            throw new IllegalStateException("coach는 userProfile을 가질 수 없습니다.");
+        }
+
         this.userProfile = userProfile;
+    }
+
+    public void setCoachProfile(CoachProfile coachProfile) {
+        if (this.coachProfile != null) {
+            throw new IllegalStateException("이미 coachProfile이 연결되어 있습니다.");
+        } else if (this.role == AccountRole.USER) {
+            throw new IllegalStateException("user는 coachProfile을 가질 수 없습니다.");
+        }
+
+        this.coachProfile = coachProfile;
     }
 }
