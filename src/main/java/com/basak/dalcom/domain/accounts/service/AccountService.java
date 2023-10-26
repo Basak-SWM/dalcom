@@ -52,6 +52,23 @@ public class AccountService {
         return account;
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Account> findByUsernameAndPassword(String username, String password) {
+        Optional<Account> account = accountRepository.findByUsername(username);
+        if (account.isPresent()) {
+            if (passwordEncoder.matches(password, account.get().getPassword())) {
+                return account;
+            }
+        }
+        return Optional.empty();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Account> findById(Integer id) {
+        Optional<Account> account = accountRepository.findById(id);
+        return account;
+    }
+
     public Optional<Account> findUserAccountByUuid(UUID uuid) {
         String stringUuid = uuid.toString();
         Optional<Account> account = accountRepository

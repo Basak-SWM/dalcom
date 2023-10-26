@@ -20,7 +20,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public DalcomUserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        Optional<Account> account = accountRepository.findById(Long.parseLong(userId));
+        Optional<Account> account = accountRepository.findById(Integer.parseInt(userId));
         if (account.isPresent()) {
             return new DalcomUserDetails(account.get());
         } else {
@@ -28,7 +28,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
     }
 
-    Optional<Account> findById(Long id) {
+    Optional<Account> findById(Integer id) {
         return accountRepository.findById(id);
     }
 }
