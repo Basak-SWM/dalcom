@@ -1,6 +1,6 @@
 package com.basak.dalcom.domain.accounts.service.dto;
 
-import com.basak.dalcom.domain.accounts.controller.dto.UserSignupReqDto;
+import com.basak.dalcom.domain.accounts.controller.dto.CoachSignupReqDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Getter
-public class UserSignupDto {
+public class CoachSignupDto {
 
     private String username;
     private String nickname;
@@ -21,14 +21,23 @@ public class UserSignupDto {
 
     private String password;
 
-    private Boolean voiceUsageAgreement;
+    private String shortIntroduce;
 
-    public UserSignupDto(UserSignupReqDto dto) {
+    private String speciality;
+
+    private String introduce;
+
+    private String youtubeUrl;
+
+    public CoachSignupDto(CoachSignupReqDto dto) {
         this.username = dto.getUsername();
         this.nickname = dto.getNickname();
         this.email = dto.getEmail();
         this.phoneNumber = dto.getPhoneNumber();
         this.password = dto.getPassword();
-        this.voiceUsageAgreement = dto.getVoiceUsageAgreement();
+        this.shortIntroduce = dto.getShortIntroduce();
+        this.speciality = dto.getSpeciality();
+        this.introduce = dto.getIntroduce();
+        this.youtubeUrl = dto.getYoutubeUrl();
     }
 }

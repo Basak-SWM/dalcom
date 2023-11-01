@@ -21,7 +21,8 @@ public class AccountFieldValidator {
      * @param phoneNumber 확인할 전화 번호
      */
     public static void uniqueValueDuplicationCheck(AccountRepository repository,
-        String email, String phoneNumber) {
+        String username, String email, String phoneNumber) {
+        usernameDuplicationCheck(repository, username);
         emailDuplicationCheck(repository, email);
         phoneNumberDuplicationCheck(repository, phoneNumber);
     }
@@ -52,4 +53,12 @@ public class AccountFieldValidator {
                 throw new HandledException(HttpStatus.CONFLICT, "Duplicated phoneNumber");
             });
     }
+
+    private static void usernameDuplicationCheck(AccountRepository repository, String username) {
+        repository.findByUsername(username)
+            .ifPresent(account -> {
+                throw new HandledException(HttpStatus.CONFLICT, "Duplicated username");
+            });
+    }
+
 }
