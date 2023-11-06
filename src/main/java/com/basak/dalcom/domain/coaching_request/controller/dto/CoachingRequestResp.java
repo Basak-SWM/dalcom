@@ -1,7 +1,9 @@
 package com.basak.dalcom.domain.coaching_request.controller.dto;
 
 import com.basak.dalcom.domain.coaching_request.CoachingRequest.Status;
+import com.basak.dalcom.domain.coaching_request.data.CoachingRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -44,4 +46,21 @@ public class CoachingRequestResp {
     @Schema(description = "코치가 쓴 사용자 기호", type = "string")
     private String jsonUserSymbol;
 
+    public static CoachingRequestResp fromEntity(CoachingRequest entity)
+        throws MalformedURLException {
+        return new CoachingRequestResp(
+            entity.getId(),
+            entity.getUserMessage(),
+            entity.getStatus(),
+            UUID.fromString(entity.getUserProfile().getAccount().getUuid()),
+            UUID.fromString(entity.getCoachProfile().getAccount().getUuid()),
+            entity.getTitle(),
+            entity.getOutline(),
+            entity.getCheckpoint(),
+            new URL(entity.getFullAudioUrl()),
+            entity.getSttResult(),
+            entity.getCoachMessage(),
+            entity.getJsonUserSymbol()
+        );
+    }
 }

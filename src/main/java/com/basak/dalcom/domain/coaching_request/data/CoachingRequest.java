@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -23,6 +24,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@Setter
 @Entity
 @Table(name = "coaching_request")
 public class CoachingRequest extends BaseEntity {
@@ -51,6 +53,8 @@ public class CoachingRequest extends BaseEntity {
     private String checkpoint;
 
     private String fullAudioUrl;
+    
+    @Column(columnDefinition = "MEDIUMTEXT", length = 5000)
     private String sttResult;
 
     private String coachMessage;

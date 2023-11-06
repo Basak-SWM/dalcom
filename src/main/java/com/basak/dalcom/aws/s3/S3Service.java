@@ -1,8 +1,10 @@
 package com.basak.dalcom.aws.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.S3Object;
 import com.basak.dalcom.config.aws.S3Config;
+import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,8 +38,16 @@ public class S3Service {
     }
 
     public S3Object download(String key) {
-        S3Object result = amazonS3.getObject(config.DEFAULT_BUCKET_NAME, key);
-        return result;
+        try {
+            S3Object result = amazonS3.getObject(config.DEFAULT_BUCKET_NAME, key);
+            return result;
+        } catch (AmazonS3Exception exception) {
+            if (exception.getStatusCode() == 404) {
+                throw new NotFoundException("S3Object");
+            } else {
+                throw exception;
+            }
+        }
     }
 
     public void deleteByKey(String key) {

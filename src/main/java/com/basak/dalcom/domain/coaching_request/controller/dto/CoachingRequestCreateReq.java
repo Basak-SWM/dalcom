@@ -10,9 +10,9 @@ import lombok.Setter;
 @Setter
 public class CoachingRequestCreateReq {
 
-    @Schema(description = "대상 스피치 ID", type = "long", example = "1")
+    @Schema(description = "대상 스피치 ID", type = "integer", example = "1")
     @NotNull(message = "대상 스피치 ID는 필수 입력 값입니다.")
-    private Long speechId;
+    private Integer speechId;
 
     @Schema(description = "요청 코치 uuid", type = "UUID", example = "123e4567-e89b-12d3-a456-426614174000")
     @NotNull(message = "요청 코치 uuid는 필수 입력 값입니다.")

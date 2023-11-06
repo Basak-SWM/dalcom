@@ -1,10 +1,14 @@
 package com.basak.dalcom.domain.coaching_request.controller;
 
+import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestCreateNotFoundResp;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestCreateReq;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestDenialReq;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestResp;
+import com.basak.dalcom.domain.coaching_request.data.CoachingRequest;
+import com.basak.dalcom.domain.coaching_request.service.CoachingRequestService;
+import com.basak.dalcom.domain.coaching_request.service.dto.CoachingRequestCreateDto;
 import com.basak.dalcom.spring.security.service.DalcomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,9 +17,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -35,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CoachingRequestController {
 
     private final AccountService accountService;
+    private final CoachingRequestService coachingRequestService;
 
     @Operation(summary = "코칭 의뢰 생성 API")
     @Parameter(name = "userDetails", hidden = true)
@@ -46,10 +54,21 @@ public class CoachingRequestController {
     @PostMapping
     public ResponseEntity<CoachingRequestResp> create(
         @AuthenticationPrincipal DalcomUserDetails userDetails,
-        @Validated @RequestBody CoachingRequestCreateReq dto) {
-//        Integer userId = Integer.parseInt(userDetails.getUsername());
+        @Validated @RequestBody CoachingRequestCreateReq dto) throws IOException {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+        Account account = accountService.findById(userId).get();
+
+        CoachingRequest createdRequestId = coachingRequestService.save(
+            CoachingRequestCreateDto.builder()
+                .speechId(dto.getSpeechId())
+                .userProfileId(UUID.fromString(account.getUuid()))
+                .coachProfileId(dto.getCoachUuid())
+                .userMessage(dto.getUserMessage())
+                .build());
+
         log.info("coach UUID: {}", dto.getCoachUuid());
-        return ResponseEntity.ok().build();
+        CoachingRequestResp resp = CoachingRequestResp.fromEntity(createdRequestId);
+        return new ResponseEntity<>(resp, HttpStatus.CREATED);
     }
 
     @Operation(summary = "코칭 의뢰 목록 조회 API",
