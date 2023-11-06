@@ -1,8 +1,10 @@
 package com.basak.dalcom.domain.core.presentation.service;
 
 import com.basak.dalcom.domain.accounts.data.Account;
+import com.basak.dalcom.domain.accounts.data.AccountRole;
 import com.basak.dalcom.domain.accounts.service.AccountService;
 import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
+import com.basak.dalcom.domain.common.exception.stereotypes.UnauthorizedException;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import com.basak.dalcom.domain.core.presentation.data.PresentationRepository;
 import com.basak.dalcom.domain.core.presentation.service.dto.PresentationDto;
@@ -28,6 +30,12 @@ public class PresentationService {
     public Presentation createPresentation(UUID accountUuid, PresentationDto dto) {
         Account account = accountService.findUserAccountByUuid(accountUuid)
             .orElseThrow(() -> new NotFoundException("Account"));
+        if (!account.getRole().equals(AccountRole.USER)) {
+            throw new UnauthorizedException(
+                String.format("Create presentation %s", dto.getTitle()),
+                "Role USER"
+            );
+        }
 
         UserProfile userProfile = account.getUserProfile();
 
@@ -54,9 +62,16 @@ public class PresentationService {
 
     @Async
     @Transactional
-    public void deleteById(Integer presentationId) {
+    public void deleteById(Integer accountId, Integer presentationId) {
         Presentation presentation = presentationRepository.findById(presentationId)
             .orElseThrow(() -> new NotFoundException("Presentation"));
+
+        if (!presentation.getUserProfile().getAccount().getId().equals(accountId)) {
+            throw new UnauthorizedException(
+                String.format("Delete presentation %d", presentationId),
+                "Ownership"
+            );
+        }
 
         for (Speech speech : presentation.getSpeeches()) {
             speechService.deleteById(speech.getId());

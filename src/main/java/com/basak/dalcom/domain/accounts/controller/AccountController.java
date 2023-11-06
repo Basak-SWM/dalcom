@@ -10,6 +10,7 @@ import com.basak.dalcom.domain.accounts.service.dto.CoachSignupDto;
 import com.basak.dalcom.domain.accounts.service.dto.UserSignupDto;
 import com.basak.dalcom.spring.security.service.DalcomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -103,6 +104,7 @@ public class AccountController {
     @Operation(
         summary = "본인 정보 확인 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "조회 성공",
         content = @Content(schema = @Schema(implementation = AccountRespDto.class)))
     @GetMapping("/me")
