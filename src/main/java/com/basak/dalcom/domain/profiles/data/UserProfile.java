@@ -1,6 +1,7 @@
 package com.basak.dalcom.domain.profiles.data;
 
 import com.basak.dalcom.domain.accounts.data.Account;
+import com.basak.dalcom.domain.coaching_request.data.CoachingRequest;
 import com.basak.dalcom.domain.common.BaseEntity;
 import com.basak.dalcom.domain.core.presentation.data.Presentation;
 import java.util.List;
@@ -39,4 +40,7 @@ public class UserProfile extends BaseEntity {
 
     @OneToMany(mappedBy = "userProfile")
     private List<Presentation> presentations;
+
+    @OneToMany(mappedBy = "userProfile")
+    private List<CoachingRequest> coachingRequests;
 }
