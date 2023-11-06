@@ -7,4 +7,8 @@ public interface CoachingRequestRepository extends JpaRepository<CoachingRequest
 
     List<CoachingRequest> findByUserProfileIdAndCoachProfileId(Integer userProfile_id,
         Integer coachProfile_id);
+
+    List<CoachingRequest> findByUserProfileId(Integer userProfile_id);
+
+    List<CoachingRequest> findByCoachProfileId(Integer coachProfile_id);
 }

@@ -18,4 +18,6 @@ public interface PresignedURLService {
     List<URL> getPresignedURLsForDownload(String prefix);
 
     URL getPresignedURLForDownload(URL url);
+
+    URL signFullURL(URL url);
 }

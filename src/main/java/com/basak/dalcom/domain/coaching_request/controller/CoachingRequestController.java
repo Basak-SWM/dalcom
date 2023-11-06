@@ -18,7 +18,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,8 +80,19 @@ public class CoachingRequestController {
         content = @Content(array = @ArraySchema(schema = @Schema(implementation = CoachingRequestResp.class))))
     @GetMapping
     public ResponseEntity<List<CoachingRequestResp>> getList(
-        @AuthenticationPrincipal DalcomUserDetails userDetails) {
-        return ResponseEntity.ok().build();
+        @AuthenticationPrincipal DalcomUserDetails userDetails) throws MalformedURLException {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+        List<CoachingRequest> requests = coachingRequestService.findByAccountId(userId);
+        List<CoachingRequestResp> resp = requests.stream()
+            .map((request) -> {
+                try {
+                    return CoachingRequestResp.fromEntity(request);
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            })
+            .toList();
+        return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
     @Operation(summary = "코칭 의뢰 단건 조회 API")
@@ -92,8 +105,18 @@ public class CoachingRequestController {
     public ResponseEntity<CoachingRequestResp> get(
         @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "coaching-request-id")
-        @PathVariable(name = "coaching-request-id") Long coachingRequestId) {
-        return ResponseEntity.ok().build();
+        @PathVariable(name = "coaching-request-id") Long coachingRequestId)
+        throws MalformedURLException {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+
+        Optional<CoachingRequest> found = coachingRequestService.findById(coachingRequestId,
+            userId);
+        if (found.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            CoachingRequestResp resp = CoachingRequestResp.fromEntity(found.get());
+            return ResponseEntity.ok(resp);
+        }
     }
 
     @Operation(summary = "코칭 요청 취소(삭제) API")

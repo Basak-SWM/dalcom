@@ -80,6 +80,16 @@ public class PresignedURLServiceImpl implements PresignedURLService {
         return getPresignedURLForDownload(bucketName, key);
     }
 
+    @Override
+    public URL signFullURL(URL url) {
+        String path = url.getPath();
+        String host = url.getHost();
+        String bucketName = host.split("\\.")[0];
+        String key = Paths.get(path).toString().substring(1);
+
+        return getPresignedURLForDownload(bucketName, key);
+    }
+
     private GeneratePresignedUrlRequest getGeneratePresignedURLRequest(
         String bucketName, String objectKey, HttpMethod method) {
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectKey)

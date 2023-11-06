@@ -4,6 +4,10 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
 import com.basak.dalcom.aws.s3.S3Service;
+import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
+import com.basak.dalcom.domain.accounts.data.Account;
+import com.basak.dalcom.domain.accounts.data.AccountRole;
+import com.basak.dalcom.domain.accounts.service.AccountService;
 import com.basak.dalcom.domain.coaching_request.CoachingRequest.Status;
 import com.basak.dalcom.domain.coaching_request.data.CoachingRequest;
 import com.basak.dalcom.domain.coaching_request.data.CoachingRequestRepository;
@@ -19,7 +23,10 @@ import com.basak.dalcom.domain.profiles.data.CoachProfileRepository;
 import com.basak.dalcom.domain.profiles.data.UserProfile;
 import com.basak.dalcom.domain.profiles.data.UserProfileRepository;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +42,8 @@ public class CoachingRequestService {
     private final CoachProfileRepository coachProfileRepository;
     private final UserProfileRepository userProfileRepository;
     private final S3Service s3Service;
+    private final PresignedURLService presignedURLService;
+    private final AccountService accountService;
 
     @Transactional
     public CoachingRequest save(CoachingRequestCreateDto dto) throws IOException {
@@ -104,5 +113,59 @@ public class CoachingRequestService {
         coachingRequestRepository.save(coachingRequest);
 
         return coachingRequest;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<CoachingRequest> findById(Long id, Integer accountId)
+        throws MalformedURLException {
+        Optional<CoachingRequest> found = coachingRequestRepository.findById(id);
+        if (found.isEmpty()) {
+            return Optional.empty();
+        }
+
+        CoachingRequest request = found.get();
+        Account account = accountService.findById(accountId).get();
+        if (account.getRole() == AccountRole.USER) {
+            if (!request.getUserProfile().getAccount().getId().equals(account.getId())) {
+                throw new UnauthorizedException("코칭 의뢰 조회", "소유자 권한");
+            }
+        } else if (account.getRole() == AccountRole.COACH) {
+            if (!request.getCoachProfile().getAccount().getId().equals(account.getId())) {
+                throw new UnauthorizedException("코칭 의뢰 조회", "소유자 권한");
+            }
+        }
+
+        URL fullAudioUrl = presignedURLService.signFullURL(new URL(request.getFullAudioUrl()));
+        request.setFullAudioUrl(fullAudioUrl.toString());
+        return Optional.of(request);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CoachingRequest> findByAccountId(Integer accountId) {
+        Account account = accountService.findById(accountId).get();
+        List<CoachingRequest> requests = null;
+
+        if (account.getRole() == AccountRole.USER) {
+            requests = coachingRequestRepository.findByUserProfileId(
+                account.getUserProfile().getId()
+            );
+        } else if (account.getRole() == AccountRole.COACH) {
+            requests = coachingRequestRepository.findByCoachProfileId(
+                account.getCoachProfile().getId()
+            );
+        }
+
+        requests.forEach(request -> {
+            URL fullAudioUrl = null;
+            try {
+                fullAudioUrl = presignedURLService.signFullURL(
+                    new URL(request.getFullAudioUrl()));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            request.setFullAudioUrl(fullAudioUrl.toString());
+        });
+
+        return requests;
     }
 }
