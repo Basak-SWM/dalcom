@@ -45,8 +45,10 @@ public class SecurityConfiguration {
             .antMatchers("/api/v1/accounts/user/signup").permitAll()
             .antMatchers("/api/v1/accounts/coach/signup").permitAll()
             .antMatchers("/api/v1/accounts/logout").permitAll()
-//            .antMatchers("/**").authenticated()
-            .antMatchers("/**").permitAll() // TODO : authenticated로 막을 예정
+            .antMatchers("/swagger-ui/**").permitAll()
+            .antMatchers("/v3/api-docs/**").permitAll()
+            .antMatchers("/**").authenticated()
+//            .antMatchers("/**").permitAll() // TODO : authenticated로 막을 예정
             .and()
             .formLogin().disable();
 
