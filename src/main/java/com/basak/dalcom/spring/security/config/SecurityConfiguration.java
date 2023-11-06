@@ -47,6 +47,8 @@ public class SecurityConfiguration {
             .antMatchers("/api/v1/accounts/logout").permitAll()
             .antMatchers("/swagger-ui/**").permitAll()
             .antMatchers("/v3/api-docs/**").permitAll()
+            .antMatchers("/api/v1/presentations/**/speeches/**/clova-result-callback")
+            .permitAll()
             .antMatchers("/**").authenticated()
 //            .antMatchers("/**").permitAll() // TODO : authenticated로 막을 예정
             .and()

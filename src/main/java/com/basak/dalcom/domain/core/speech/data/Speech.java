@@ -1,5 +1,6 @@
 package com.basak.dalcom.domain.core.speech.data;
 
+import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.common.BaseEntity;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisRecord;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
@@ -110,6 +111,10 @@ public class Speech extends BaseEntity {
         List<AudioSegment> copied = List.copyOf(audioSegments);
         this.audioSegments.clear();
         this.audioSegments.addAll(copied);
+    }
+
+    public Account getOwner() {
+        return this.presentation.getUserProfile().getAccount();
     }
 
 //    public void setAIChatAvailable() {

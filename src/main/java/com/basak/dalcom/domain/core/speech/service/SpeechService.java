@@ -5,6 +5,7 @@ import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
 import com.basak.dalcom.config.NCPConfig;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.common.exception.stereotypes.NotFoundException;
+import com.basak.dalcom.domain.common.exception.stereotypes.UnauthorizedException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
 import com.basak.dalcom.domain.core.analysis_result.service.AnalysisRecordService;
 import com.basak.dalcom.domain.core.audio_segment.data.AudioSegment;
@@ -83,10 +84,18 @@ public class SpeechService {
      * 최초 녹음 시작 시에 단일 Speech 생성하는 서비스
      */
     @Transactional
-    public Speech createSpeech(Integer presentationId, Optional<Integer> referenceSpeechId) {
+    public Speech createSpeech(Integer userId, Integer presentationId,
+        Optional<Integer> referenceSpeechId) {
         Presentation targetPresentation = presentationRepository
             .findPresentationById(presentationId)
             .orElseThrow(() -> new NotFoundException("Presentation"));
+
+        if (!targetPresentation.getUserProfile().getAccount().getId().equals(userId)) {
+            throw new UnauthorizedException(
+                String.format("Create speech to presentation %d", presentationId),
+                "Ownership"
+            );
+        }
 
         Speech referenceSpeech = null;
         if (referenceSpeechId.isPresent()) {
@@ -184,10 +193,17 @@ public class SpeechService {
     }
 
     @Transactional
-    public Speech partialUpdate(SpeechUpdateDto dto) {
+    public Speech partialUpdate(Integer accountId, SpeechUpdateDto dto) {
         Speech speech = speechRepository.findSpeechByIdAndPresentationId(
             dto.getSpeechId(), dto.getPresentationId()
         ).orElseThrow(() -> new NotFoundException("Speech"));
+
+        if (!speech.getPresentation().getUserProfile().getAccount().getId().equals(accountId)) {
+            throw new UnauthorizedException(
+                String.format("Update speech %d", speech.getId()),
+                "Ownership"
+            );
+        }
 
         dto.getUserSymbol().ifPresent(userSymbol -> speech.setUserSymbol(
             dto.getUserSymbol().get()

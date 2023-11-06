@@ -2,6 +2,7 @@ package com.basak.dalcom.domain.core.speech.controller;
 
 import com.basak.dalcom.aws.s3.S3Service;
 import com.basak.dalcom.aws.s3.presigned_url.PresignedURLService;
+import com.basak.dalcom.domain.accounts.service.AccountService;
 import com.basak.dalcom.domain.common.exception.UnhandledException;
 import com.basak.dalcom.domain.common.exception.stereotypes.ConflictException;
 import com.basak.dalcom.domain.core.analysis_result.data.AnalysisType;
@@ -25,6 +26,7 @@ import com.basak.dalcom.domain.core.speech.service.SpeechService;
 import com.basak.dalcom.domain.core.speech.service.dto.AIChatLogRetrieveResult;
 import com.basak.dalcom.domain.core.speech.service.dto.SpeechUpdateDto;
 import com.basak.dalcom.external_api.openai.service.OpenAIService;
+import com.basak.dalcom.spring.security.service.DalcomUserDetails;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -43,6 +45,7 @@ import org.springframework.boot.json.JsonParseException;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -65,22 +68,27 @@ public class SpeechController {
     private final PresignedURLService presignedURLService;
     private final OpenAIService openAIService;
     private final S3Service s3Service;
+    private final AccountService accountService;
     private final JsonParser jsonParser = new JacksonJsonParser();
 
     @Operation(
         summary = "스피치 생성 API",
         description = "특정 프레젠테이션에 소속되는 스피치를 하나 생성한다."
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "201", description = "스피치 생성 성공")
     @ApiResponse(responseCode = "404", description = "전달된 presentation-id를 가지는 프레젠테이션이 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = SpeechRespDto.class)))
     @PostMapping("")
     public ResponseEntity<SpeechRespDto> createSpeech(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @RequestBody SpeechCreateDto dto) {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+
         Optional<Integer> refSpeechId = Optional.ofNullable(dto.getReferenceSpeechId());
-        Speech speech = speechService.createSpeech(presentationId, refSpeechId);
+        Speech speech = speechService.createSpeech(userId, presentationId, refSpeechId);
         return new ResponseEntity<>(
             new SpeechRespDto(speech),
             HttpStatus.CREATED
@@ -91,18 +99,25 @@ public class SpeechController {
         summary = "단일 스피치 조회 API",
         description = "단일 스피치 정보 가져오는 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공",
         content = @Content(schema = @Schema(implementation = SpeechRespDto.class)))
     @ApiResponse(responseCode = "404", description = "해당 SpeechId를 가지는 스피치가 존재하지 않는 경우",
         content = @Content)
     @GetMapping("/{speech-id}")
     public ResponseEntity<SpeechRespDto> getSpeech(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, true);
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         return new ResponseEntity<>(new SpeechRespDto(speech), HttpStatus.OK);
     }
@@ -111,15 +126,25 @@ public class SpeechController {
         summary = "스피치 목록 조회 API",
         description = "해당 Presentation 내 스피치 목록 조회하는 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "스피치 정보 반환 성공",
         content = @Content(array = @ArraySchema(schema = @Schema(implementation = SpeechRespDto.class))))
     @ApiResponse(responseCode = "404", description = "해당 PresentationId를 가지는 스피치가 존재하지 않는 경우",
         content = @Content)
     @GetMapping("")
     public ResponseEntity<List<SpeechRespDto>> getSpeechList(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId) {
         List<Speech> speeches = speechService.findSpeechesByPresentationId(presentationId);
+
+        if (!speeches.isEmpty()) {
+            Integer id = Integer.parseInt(userDetails.getUsername());
+            if (!speeches.get(0).getOwner().getId().equals(id)) {
+                throw new ConflictException("Not your speech.");
+            }
+        }
+
         List<SpeechRespDto> dtos = speeches.stream()
             .map(SpeechRespDto::new)
             .toList();
@@ -130,12 +155,14 @@ public class SpeechController {
         summary = "스피치 녹음 완료 통지 API",
         description = "연습(녹음) 종류 후 STT 처리 및 분석 시작을 요청하는 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "404", description = "전달된 speech-id를 가지는 스피치가 존재하지 않는 경우",
         content = @Content)
     @ApiResponse(responseCode = "409", description = "이미 녹음 완료 처리가 요청된 경우",
         content = @Content)
     @PostMapping("/{speech-id}/record-done")
     public ResponseEntity<Void> speechRecordDone(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -144,6 +171,11 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         if (speech.getRecordDone()) {
             throw new ConflictException("Already record done.");
@@ -161,6 +193,7 @@ public class SpeechController {
             "URL로 하여 PUT 메서드로 파일을 첨부, 업로드하면 S3 bucket에 해당 파일이 업로드 된다. <br/>" +
             "업로드가 완료되면, 업로드가 완료되었음을 통지하는 API를 호출하여 AudioSegment를 생성해야 한다."
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "Presigned URL 반환 성공")
     @ApiResponse(responseCode = "404", description = "전달된 presentationId를 가지는 프레젠테이션이 존재하지 않는 경우",
         content = @Content(schema = @Schema(implementation = UrlDto.class)))
@@ -168,6 +201,7 @@ public class SpeechController {
         content = @Content)
     @PostMapping("/{speech-id}/audio-segments/upload-url")
     public ResponseEntity<UrlDto> getAudioSegmentUploadPresignedUrl(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -176,6 +210,11 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         if (speech.getRecordDone()) {
             throw new ConflictException("Already record done.");
@@ -191,10 +230,12 @@ public class SpeechController {
         summary = "Presigned URL로 업로드 완료 처리 API",
         description = "서버에서 발급한 Presigned URL로 업로드가 완료된 것으로 상태를 갱신하는 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "201", description = "업로드 완료 처리 성공 (AudioSegment 생성 완료)",
         content = @Content(schema = @Schema(implementation = AudioSegmentRespDto.class)))
     @PostMapping("/{speech-id}/audio-segment/upload-url/done")
     public ResponseEntity<AudioSegmentRespDto> audioSegmentUploadComplete(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -204,6 +245,11 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         if (speech.getRecordDone()) {
             throw new ConflictException("Already record done.");
@@ -215,10 +261,12 @@ public class SpeechController {
     }
 
     @Operation(summary = "스피치 정보 업데이트 API")
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "업데이트 완료",
         content = @Content(schema = @Schema(implementation = SpeechRespDto.class)))
     @PatchMapping("/{speech-id}")
     public ResponseEntity<SpeechRespDto> updateSpeech(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -228,7 +276,8 @@ public class SpeechController {
             presentationId, speechId, requestDto.getUserSymbol(), requestDto.getBookmarked()
         );
 
-        Speech updatedSpeech = speechService.partialUpdate(serviceDto);
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        Speech updatedSpeech = speechService.partialUpdate(id, serviceDto);
 
         return new ResponseEntity<>(new SpeechRespDto(updatedSpeech), HttpStatus.OK);
     }
@@ -236,6 +285,7 @@ public class SpeechController {
     @Operation(
         summary = "분석 결과 조회용 presigned URL API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @ApiResponse(responseCode = "202", description = "아직 처리중인 경우",
         content = @Content)
@@ -245,6 +295,7 @@ public class SpeechController {
         content = @Content)
     @GetMapping("/{speech-id}/analysis-records")
     public ResponseEntity<Map<AnalysisType, URL>> getAnalysisRecords(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -252,6 +303,11 @@ public class SpeechController {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false
         );
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         if (!speech.getRecordDone()) {
             throw new ConflictException("Record not done.");
@@ -308,14 +364,25 @@ public class SpeechController {
     @Operation(
         summary = "스피치 삭제 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "204", description = "스피치 삭제 성공",
         content = @Content)
     @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
         content = @Content)
     @DeleteMapping("/{speech-id}")
     public ResponseEntity<Void> deleteSpeech(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @PathVariable(name = "presentation-id") Integer presentationId,
         @PathVariable(name = "speech-id") Integer speechId) {
+        Speech speech = speechService.findSpeechByIdAndPresentationId(
+            speechId, presentationId, false
+        );
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
+
         speechService.deleteById(speechId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -324,6 +391,7 @@ public class SpeechController {
     @Operation(
         summary = "논리적 피드백 기록 목록 조회 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "조회 성공",
         content = @Content(schema = @Schema(implementation = AIChatLogListRespDto.class)))
     @ApiResponse(responseCode = "202", description = "논리적 피드백 준비가 아직 되지 않은 경우 (polling 필요)",
@@ -334,12 +402,18 @@ public class SpeechController {
         content = @Content)
     @GetMapping("/{speech-id}/ai-chat-logs")
     public ResponseEntity<AIChatLogListRespDto> getAIChatLogs(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
         @PathVariable(name = "speech-id") Integer speechId) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, true);
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         // 녹음이 끝나지 않은 경우 녹음 완료 처리 먼저 해야 함
         if (!speech.getRecordDone()) {
@@ -367,6 +441,7 @@ public class SpeechController {
     @Operation(
         summary = "논리적 피드백 기록 단건 조회 API"
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "조회 성공",
         content = @Content(schema = @Schema(implementation = AIChatLogListRespDto.class)))
     @ApiResponse(responseCode = "202", description = "처리 중인 경우 (polling 필요)",
@@ -377,6 +452,7 @@ public class SpeechController {
         content = @Content)
     @GetMapping("/{speech-id}/ai-chat-logs/{log-id}")
     public ResponseEntity<AIChatLogRespDto> getAIChatLog(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -386,6 +462,11 @@ public class SpeechController {
     ) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, true);
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         if (!speech.getRecordDone()) {
             throw new ConflictException("Record not done.");
@@ -409,6 +490,7 @@ public class SpeechController {
         description = "논리적 피드백 생성을 비동기적으로 요청하는 API로, 요청이 완료되면 202 상태코드를 반환한다. <br/>"
             + "응답으로 반환된 논리적 피드백의 id로 단건 조회 요청을 하여 논리적 피드백 완료 여부를 확인할 수 있다."
     )
+    @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "202", description = "생성 완료 (polling 필요)",
         content = @Content)
     @ApiResponse(responseCode = "404", description = "전달된 id를 가지는 스피치가 존재하지 않는 경우",
@@ -417,6 +499,7 @@ public class SpeechController {
         content = @Content)
     @PostMapping("/{speech-id}/ai-chat-logs")
     public ResponseEntity<AIChatLogCreateResDto> createAIChatLog(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "presentation-id")
         @PathVariable(name = "presentation-id") Integer presentationId,
         @Parameter(name = "speech-id")
@@ -424,6 +507,11 @@ public class SpeechController {
         @RequestBody AIChatLogReqDto requestDto) {
         Speech speech = speechService.findSpeechByIdAndPresentationId(
             speechId, presentationId, false);
+
+        Integer id = Integer.parseInt(userDetails.getUsername());
+        if (!speech.getOwner().getId().equals(id)) {
+            throw new ConflictException("Not your speech.");
+        }
 
         if (!speech.getRecordDone()) {
             throw new ConflictException("Record not done.");
