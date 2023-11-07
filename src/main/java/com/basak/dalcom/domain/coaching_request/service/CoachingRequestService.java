@@ -180,10 +180,75 @@ public class CoachingRequestService {
             !coachingRequest.getCoachProfile().getAccount().getId().equals(account.getId())) {
             throw new UnauthorizedException("코칭 의뢰 수정", "담당 코치 권한");
         } else if (!coachingRequest.getStatus().equals(Status.ACCEPTED)) {
-            throw new ConflictException("진행 중인 코칭이 아닌 경우");
+            throw new ConflictException("진행 중인 코칭이 아닙니다.");
         }
 
         coachingRequest.setCoachMessage(coachMessage);
         coachingRequest.setJsonUserSymbol(jsonUserSymbol);
+    }
+
+    @Transactional
+    public void delete(Integer requestedAccountId, Long coachingRequestId) {
+        Account account = accountService.findById(requestedAccountId).get();
+        CoachingRequest coachingRequest = coachingRequestRepository.findById(coachingRequestId)
+            .orElseThrow(() -> new NotFoundException("CoachingRequest"));
+
+        if (account.getRole() != AccountRole.USER || coachingRequest.getUserProfile().getAccount()
+            .getId().equals(account.getId())) {
+            throw new UnauthorizedException("코칭 의뢰 삭제", "소유자 권한");
+        } else if (coachingRequest.getStatus().equals(Status.ACCEPTED)) {
+            throw new UnauthorizedException("코칭 의뢰 삭제", "코칭 완료까지 대기 필요");
+        }
+
+        coachingRequestRepository.delete(coachingRequest);
+    }
+
+    @Transactional
+    public void accept(Integer requestedAccountId, Long coachingRequestId) {
+        Account account = accountService.findById(requestedAccountId).get();
+        CoachingRequest coachingRequest = coachingRequestRepository.findById(coachingRequestId)
+            .orElseThrow(() -> new NotFoundException("CoachingRequest"));
+
+        if (account.getRole() != AccountRole.COACH ||
+            !coachingRequest.getCoachProfile().getAccount().getId().equals(account.getId())) {
+            throw new UnauthorizedException("코칭 의뢰 수락", "담당 코치 권한");
+        } else if (!coachingRequest.getStatus().equals(Status.REQUESTED)) {
+            throw new ConflictException("코칭 요청 상태가 아닙니다.");
+        }
+
+        coachingRequest.setStatus(Status.ACCEPTED);
+    }
+
+    @Transactional
+    public void deny(Integer requestedAccountId, Long coachingRequestId, String reason) {
+        Account account = accountService.findById(requestedAccountId).get();
+        CoachingRequest coachingRequest = coachingRequestRepository.findById(coachingRequestId)
+            .orElseThrow(() -> new NotFoundException("CoachingRequest"));
+
+        if (account.getRole() != AccountRole.COACH ||
+            !coachingRequest.getCoachProfile().getAccount().getId().equals(account.getId())) {
+            throw new UnauthorizedException("코칭 의뢰 거절", "담당 코치 권한");
+        } else if (!coachingRequest.getStatus().equals(Status.REQUESTED)) {
+            throw new ConflictException("코칭 요청 상태가 아닙니다.");
+        }
+
+        coachingRequest.setDenialReason(reason);
+        coachingRequest.setStatus(Status.DENIED);
+    }
+
+    @Transactional
+    public void finish(Integer requestAccountId, Long coachingRequestId) {
+        Account account = accountService.findById(requestAccountId).get();
+        CoachingRequest coachingRequest = coachingRequestRepository.findById(coachingRequestId)
+            .orElseThrow(() -> new NotFoundException("CoachingRequest"));
+
+        if (account.getRole() != AccountRole.USER ||
+            !coachingRequest.getUserProfile().getAccount().getId().equals(account.getId())) {
+            throw new UnauthorizedException("코칭 의뢰 수정", "담당 유저 권한");
+        } else if (!coachingRequest.getStatus().equals(Status.ACCEPTED)) {
+            throw new ConflictException("진행 중인 코칭이 아닙니다.");
+        }
+
+        coachingRequest.setStatus(Status.DONE);
     }
 }

@@ -28,6 +28,7 @@ public class CoachingRequest {
     // Coaching
     private Optional<String> coachMessage; // 코칭 코멘트
     private String jsonUserSymbol; // 코치가 쓴 사용자 기호
+    private String denialReason; // 거절 사유
 
     public enum Status {
         REQUESTED, ACCEPTED, DENIED, DONE

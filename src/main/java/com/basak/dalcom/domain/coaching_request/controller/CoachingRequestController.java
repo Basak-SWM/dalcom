@@ -143,53 +143,62 @@ public class CoachingRequestController {
     @Operation(summary = "코칭 요청 취소(삭제) API")
     @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "204", description = "코칭 요청 삭제 성공")
-    @ApiResponse(responseCode = "400", description = "수락할 수 없는 코칭 의뢰인 경우")
+    @ApiResponse(responseCode = "401", description = "삭제 권한이 없는 경우")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 코칭 의뢰인 경우")
     @DeleteMapping("/{coaching-request-id}")
     public ResponseEntity<Void> delete(
         @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "coaching-request-id")
         @PathVariable(name = "coaching-request-id") Long coachingRequestId) {
-        return ResponseEntity.ok().build();
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+        coachingRequestService.delete(userId, coachingRequestId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "코칭 수락 API")
     @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "코칭 수락 성공")
-    @ApiResponse(responseCode = "400", description = "수락할 수 없는 코칭 의뢰인 경우")
+    @ApiResponse(responseCode = "401", description = "수락 권한이 없는 경우")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 코칭 의뢰인 경우")
+    @ApiResponse(responseCode = "409", description = "의뢰의 상태가 'REQUESTED'가 아닌 경우")
     @PostMapping("/{coaching-request-id}/accept")
     public ResponseEntity<Void> accept(
         @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "coaching-request-id")
         @PathVariable(name = "coaching-request-id") Long coachingRequestId) {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+        coachingRequestService.accept(userId, coachingRequestId);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "코칭 거절 API")
     @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "코칭 거절 성공")
-    @ApiResponse(responseCode = "400", description = "거절할 수 없는 코칭 의뢰인 경우")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 코칭 의뢰인 경우")
+    @ApiResponse(responseCode = "409", description = "의뢰의 상태가 'REQUESTED'가 아닌 경우")
     @PostMapping("/{coaching-request-id}/deny")
     public ResponseEntity<Void> deny(
         @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "coaching-request-id")
         @PathVariable(name = "coaching-request-id") Long coachingRequestId,
         @Validated @RequestBody CoachingRequestDenialReq dto) {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+        coachingRequestService.deny(userId, coachingRequestId, dto.getReason());
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "코칭 완료 API")
     @Parameter(name = "userDetails", hidden = true)
     @ApiResponse(responseCode = "200", description = "코칭 완료 성공")
-    @ApiResponse(responseCode = "400", description = "완료할 수 없는 코칭 의뢰인 경우")
     @ApiResponse(responseCode = "404", description = "존재하지 않는 코칭 의뢰인 경우")
+    @ApiResponse(responseCode = "409", description = "의뢰의 상태가 'ACCEPTED'가 아닌 경우")
     @PostMapping("/{coaching-request-id}/finish")
     public ResponseEntity<Void> finish(
         @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "coaching-request-id")
         @PathVariable(name = "coaching-request-id") Long coachingRequestId) {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+        coachingRequestService.finish(userId, coachingRequestId);
         return ResponseEntity.ok().build();
     }
 }

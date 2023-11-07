@@ -53,10 +53,11 @@ public class CoachingRequest extends BaseEntity {
     private String checkpoint;
 
     private String fullAudioUrl;
-    
+
     @Column(columnDefinition = "MEDIUMTEXT", length = 5000)
     private String sttResult;
 
     private String coachMessage;
     private String jsonUserSymbol;
+    private String denialReason;
 }
