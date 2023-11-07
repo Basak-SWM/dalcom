@@ -6,6 +6,7 @@ import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestCr
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestCreateReq;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestDenialReq;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestResp;
+import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestUpdateReq;
 import com.basak.dalcom.domain.coaching_request.data.CoachingRequest;
 import com.basak.dalcom.domain.coaching_request.service.CoachingRequestService;
 import com.basak.dalcom.domain.coaching_request.service.dto.CoachingRequestCreateDto;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -118,6 +120,25 @@ public class CoachingRequestController {
             return ResponseEntity.ok(resp);
         }
     }
+
+    @Operation(summary = "코칭 의뢰 수정 API",
+        description = "특정 코칭 의뢰의 내용을 수정하는 API")
+    @Parameter(name = "userDetails", hidden = true)
+    @ApiResponse(responseCode = "200", description = "코칭 의뢰 수정 성공")
+    @ApiResponse(responseCode = "404", description = "존재하지 않는 코칭 의뢰인 경우")
+    @ApiResponse(responseCode = "409", description = "코칭 진행 중인 코칭 의뢰가 아닌 경우")
+    @PutMapping("/{coaching-request-id}")
+    public ResponseEntity<Void> update(
+        @AuthenticationPrincipal DalcomUserDetails userDetails,
+        @Parameter(name = "coaching-request-id")
+        @PathVariable(name = "coaching-request-id") Long coachingRequestId,
+        @Validated @RequestBody CoachingRequestUpdateReq dto) throws MalformedURLException {
+        Integer userId = Integer.parseInt(userDetails.getUsername());
+        coachingRequestService.update(userId, coachingRequestId,
+            dto.getCoachMessage(), dto.getJsonUserSymbol());
+        return ResponseEntity.ok().build();
+    }
+
 
     @Operation(summary = "코칭 요청 취소(삭제) API")
     @Parameter(name = "userDetails", hidden = true)

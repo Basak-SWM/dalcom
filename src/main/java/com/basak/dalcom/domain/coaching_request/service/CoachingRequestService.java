@@ -168,4 +168,22 @@ public class CoachingRequestService {
 
         return requests;
     }
+
+    @Transactional
+    public void update(Integer requestedAccountId, Long coachingRequestId,
+        String coachMessage, String jsonUserSymbol) {
+        Account account = accountService.findById(requestedAccountId).get();
+        CoachingRequest coachingRequest = coachingRequestRepository.findById(coachingRequestId)
+            .orElseThrow(() -> new NotFoundException("CoachingRequest"));
+
+        if (account.getRole() != AccountRole.COACH ||
+            !coachingRequest.getCoachProfile().getAccount().getId().equals(account.getId())) {
+            throw new UnauthorizedException("코칭 의뢰 수정", "담당 코치 권한");
+        } else if (!coachingRequest.getStatus().equals(Status.ACCEPTED)) {
+            throw new ConflictException("진행 중인 코칭이 아닌 경우");
+        }
+
+        coachingRequest.setCoachMessage(coachMessage);
+        coachingRequest.setJsonUserSymbol(jsonUserSymbol);
+    }
 }
