@@ -17,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Builder
 @NoArgsConstructor
@@ -49,4 +50,7 @@ public class CoachProfile {
 
     @OneToMany(mappedBy = "coachProfile")
     private List<CoachingRequest> coachingRequests;
+
+    @ColumnDefault("0")
+    private Integer acceptCount;
 }

@@ -217,6 +217,7 @@ public class CoachingRequestService {
         }
 
         coachingRequest.setStatus(Status.ACCEPTED);
+        account.getCoachProfile().setAcceptCount(account.getCoachProfile().getAcceptCount() + 1);
     }
 
     @Transactional
