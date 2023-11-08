@@ -15,6 +15,10 @@ spring:
     show-sql: false
     hibernate:
       ddl-auto: update
+  redis:
+    host: localhost
+    port: 6379
+    password: thisispassword123!
 
 cloud:
   aws:
@@ -29,7 +33,7 @@ cloud:
 
   ncp:
     clova-speech:
-      callback-url-template: https://1abf-175-192-199-39.ngrok-free.app/api/v1/presentations/%d/speeches/%d/clova-result-callback
+      callback-url-template: https://839f-117-111-4-251.ngrok-free.app/api/v1/presentations/%d/speeches/%d/clova-result-callback
 
 wasak:
   api:
