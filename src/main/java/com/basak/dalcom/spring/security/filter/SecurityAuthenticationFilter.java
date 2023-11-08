@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -24,6 +25,16 @@ public class SecurityAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
         HttpSession session = request.getSession(true);
+
+        ResponseCookie cookie = ResponseCookie.from("YUBIN", "STUPID")
+            .path("/")
+            .sameSite("None")
+            .httpOnly(false)
+            .secure(false)
+            .maxAge(60 * 60 * 24 * 30)
+            .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
 
         if (!session.isNew()) {
             String userId = (String) session.getAttribute("userId");
