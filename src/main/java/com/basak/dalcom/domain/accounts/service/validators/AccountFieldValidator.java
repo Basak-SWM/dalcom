@@ -36,7 +36,7 @@ public class AccountFieldValidator {
     private static void emailDuplicationCheck(AccountRepository repository, String email) {
         repository.findByEmail(email)
             .ifPresent(account -> {
-                throw new HandledException(HttpStatus.CONFLICT, "Duplicated email");
+                throw new HandledException(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다.");
             });
     }
 
@@ -50,14 +50,14 @@ public class AccountFieldValidator {
         String phoneNumber) {
         repository.findByPhoneNumber(phoneNumber)
             .ifPresent(account -> {
-                throw new HandledException(HttpStatus.CONFLICT, "Duplicated phoneNumber");
+                throw new HandledException(HttpStatus.CONFLICT, "이미 사용 중인 전화 번호입니다.");
             });
     }
 
     private static void usernameDuplicationCheck(AccountRepository repository, String username) {
         repository.findByUsername(username)
             .ifPresent(account -> {
-                throw new HandledException(HttpStatus.CONFLICT, "Duplicated username");
+                throw new HandledException(HttpStatus.CONFLICT, "이미 사용 중인 ID입니다.");
             });
     }
 
