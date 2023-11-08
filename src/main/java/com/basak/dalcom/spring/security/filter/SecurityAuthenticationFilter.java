@@ -30,7 +30,7 @@ public class SecurityAuthenticationFilter extends OncePerRequestFilter {
             .path("/")
             .sameSite("None")
             .httpOnly(false)
-            .secure(false)
+            .secure(true)
             .maxAge(60 * 60 * 24 * 30)
             .build();
 
