@@ -25,12 +25,15 @@ public class SecurityAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
         HttpSession session = request.getSession(true);
+        // Set session httpOnly, sameSite, secure
+        session.setAttribute("secure", true);
+        session.setAttribute("sameSite", "None");
 
         ResponseCookie cookie = ResponseCookie.from("YUBIN", "STUPID")
             .path("/")
             .sameSite("None")
             .httpOnly(false)
-            .secure(true)
+            .secure(false)
             .maxAge(60 * 60 * 24 * 30)
             .build();
 
