@@ -70,6 +70,8 @@ public class SecurityConfiguration {
 
         configuration.addAllowedOrigin("http://localhost:3000/");
         configuration.addAllowedOrigin("http://localhost:8000/");
+        configuration.addAllowedOrigin("https://api.tokpeanut.com/");
+        configuration.addAllowedOrigin("http://api.tokpeanut.com/");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);
