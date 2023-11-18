@@ -119,6 +119,8 @@ public class AccountController {
         }
     }
 
+    @Operation(summary = "로그아웃 API")
+    @RequestMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
