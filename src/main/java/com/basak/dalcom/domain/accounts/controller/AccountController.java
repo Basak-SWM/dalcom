@@ -118,4 +118,12 @@ public class AccountController {
             return new ResponseEntity<>(new AccountRespDto(account), HttpStatus.OK);
         }
     }
+
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }
