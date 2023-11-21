@@ -76,6 +76,7 @@ public class SecurityConfiguration {
         configuration.addAllowedOrigin("https://tokpeanut.com/");
         configuration.addAllowedOrigin("http://tokpeanut.com");
         configuration.addAllowedOrigin("https://tokpeanut.com");
+        configuration.addAllowedOriginPattern("*");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);
