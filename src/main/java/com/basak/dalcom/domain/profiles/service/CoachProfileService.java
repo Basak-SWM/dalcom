@@ -5,6 +5,7 @@ import com.basak.dalcom.domain.common.exception.stereotypes.BadRequestException;
 import com.basak.dalcom.domain.profiles.data.CoachProfile;
 import com.basak.dalcom.domain.profiles.data.CoachProfileRepository;
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,5 +47,10 @@ public class CoachProfileService {
     @Transactional(readOnly = true)
     public List<CoachProfile> findAll() {
         return coachProfileRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<CoachProfile> findByAccountUuid(String accountUuid) {
+        return coachProfileRepository.findByAccountUuid(accountUuid);
     }
 }
