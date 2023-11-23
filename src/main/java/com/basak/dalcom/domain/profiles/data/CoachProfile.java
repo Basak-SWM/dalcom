@@ -11,6 +11,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,4 +54,9 @@ public class CoachProfile {
 
     @ColumnDefault("0")
     private Integer acceptCount;
+
+    @PrePersist
+    public void prePersist() {
+        this.acceptCount = this.acceptCount == null ? 0 : this.acceptCount;
+    }
 }
