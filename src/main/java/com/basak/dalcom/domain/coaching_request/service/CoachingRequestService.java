@@ -221,7 +221,7 @@ public class CoachingRequestService {
     }
 
     @Transactional
-    public void deny(Integer requestedAccountId, Long coachingRequestId, String reason) {
+    public void deny(Integer requestedAccountId, Long coachingRequestId) {
         Account account = accountService.findById(requestedAccountId).get();
         CoachingRequest coachingRequest = coachingRequestRepository.findById(coachingRequestId)
             .orElseThrow(() -> new NotFoundException("CoachingRequest"));
@@ -232,8 +232,7 @@ public class CoachingRequestService {
         } else if (!coachingRequest.getStatus().equals(Status.REQUESTED)) {
             throw new ConflictException("코칭 요청 상태가 아닙니다.");
         }
-
-        coachingRequest.setDenialReason(reason);
+        coachingRequest.setDenialReason("Denied");
         coachingRequest.setStatus(Status.DENIED);
     }
 

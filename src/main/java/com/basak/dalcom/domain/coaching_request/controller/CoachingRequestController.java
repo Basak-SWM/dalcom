@@ -4,7 +4,6 @@ import com.basak.dalcom.domain.accounts.data.Account;
 import com.basak.dalcom.domain.accounts.service.AccountService;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestCreateNotFoundResp;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestCreateReq;
-import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestDenialReq;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestResp;
 import com.basak.dalcom.domain.coaching_request.controller.dto.CoachingRequestUpdateReq;
 import com.basak.dalcom.domain.coaching_request.data.CoachingRequest;
@@ -180,10 +179,9 @@ public class CoachingRequestController {
     public ResponseEntity<Void> deny(
         @AuthenticationPrincipal DalcomUserDetails userDetails,
         @Parameter(name = "coaching-request-id")
-        @PathVariable(name = "coaching-request-id") Long coachingRequestId,
-        @Validated @RequestBody CoachingRequestDenialReq dto) {
+        @PathVariable(name = "coaching-request-id") Long coachingRequestId) {
         Integer userId = Integer.parseInt(userDetails.getUsername());
-        coachingRequestService.deny(userId, coachingRequestId, dto.getReason());
+        coachingRequestService.deny(userId, coachingRequestId);
         return ResponseEntity.ok().build();
     }
 
