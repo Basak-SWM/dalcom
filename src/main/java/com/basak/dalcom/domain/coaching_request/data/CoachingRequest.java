@@ -62,6 +62,7 @@ public class CoachingRequest extends BaseEntity {
     private String sttResult;
 
     private String coachMessage;
+    @Column(columnDefinition = "TEXT")
     private String jsonUserSymbol;
     private String denialReason;
 }
