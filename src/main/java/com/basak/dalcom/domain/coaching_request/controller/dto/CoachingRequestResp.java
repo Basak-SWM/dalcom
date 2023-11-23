@@ -23,8 +23,13 @@ public class CoachingRequestResp {
     // From Accounts
     @Schema(description = "의뢰 사용자 account uuid", type = "UUID", example = "123e4567-e89b-12d3-a456-426614174000")
     private UUID userUuid;
-    @Schema(description = "의뢰 사용자 account 이름", type = "string", example = "홍길동")
+    @Schema(description = "의뢰 코치 account 이름", type = "UUID", example = "123e4567-e89b-12d3-a456-426614174000")
     private UUID coachUuid;
+
+    @Schema(description = "의뢰 사용자 닉네임", type = "string", example = "김바삭")
+    private String userNickname;
+    @Schema(description = "의뢰 코치 닉네임", type = "string", example = "박코치")
+    private String coachNickname;
 
     // From Presentation
     @Schema(description = "프레젠테이션 ID", type = "integer", example = "1")
@@ -59,6 +64,8 @@ public class CoachingRequestResp {
             entity.getStatus(),
             UUID.fromString(entity.getUserProfile().getAccount().getUuid()),
             UUID.fromString(entity.getCoachProfile().getAccount().getUuid()),
+            entity.getUserProfile().getAccount().getNickname(),
+            entity.getCoachProfile().getAccount().getNickname(),
             entity.getPresentationId(),
             entity.getTitle(),
             entity.getOutline(),

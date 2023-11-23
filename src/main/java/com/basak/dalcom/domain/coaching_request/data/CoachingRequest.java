@@ -40,11 +40,13 @@ public class CoachingRequest extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "user_profile_id", nullable = false)
     private UserProfile userProfile;
+    private String userNickname;
 
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne
     @JoinColumn(name = "coach_profile_id", nullable = false)
     private CoachProfile coachProfile;
+    private String coachNickname;
 
     private String userMessage;
 

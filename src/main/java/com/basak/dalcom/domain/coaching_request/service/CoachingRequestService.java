@@ -110,6 +110,8 @@ public class CoachingRequestService {
             .speechId(speech.getId())
             .fullAudioUrl(speech.getFullAudioS3Url())
             .sttResult(stt)
+            .userNickname(userProfile.getAccount().getNickname())
+            .coachNickname(coachProfile.getAccount().getNickname())
             .build();
 
         coachingRequestRepository.save(coachingRequest);
