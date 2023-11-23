@@ -246,7 +246,7 @@ public class CoachingRequestService {
         CoachingRequest coachingRequest = coachingRequestRepository.findById(coachingRequestId)
             .orElseThrow(() -> new NotFoundException("CoachingRequest"));
 
-        if (coachingRequest.getCoachProfile().getAccount().getId().equals(account.getId())) {
+        if (!coachingRequest.getCoachProfile().getAccount().getId().equals(account.getId())) {
             throw new UnauthorizedException("코칭 의뢰 수정", "담당 코치 권한");
         } else if (!coachingRequest.getStatus().equals(Status.ACCEPTED)) {
             throw new ConflictException("진행 중인 코칭이 아닙니다.");
