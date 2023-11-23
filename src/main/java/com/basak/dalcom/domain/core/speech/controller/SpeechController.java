@@ -115,9 +115,9 @@ public class SpeechController {
             speechId, presentationId, true);
 
         Integer id = Integer.parseInt(userDetails.getUsername());
-        if (!speech.getOwner().getId().equals(id)) {
-            throw new ConflictException("Not your speech.");
-        }
+//        if (!speech.getOwner().getId().equals(id)) {
+//            throw new ConflictException("Not your speech.");
+//        }
 
         return new ResponseEntity<>(new SpeechRespDto(speech), HttpStatus.OK);
     }

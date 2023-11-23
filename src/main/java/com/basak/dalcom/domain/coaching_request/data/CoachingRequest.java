@@ -48,6 +48,8 @@ public class CoachingRequest extends BaseEntity {
 
     private String userMessage;
 
+    private Integer speechId;
+    private Integer presentationId;
     private String title;
     private String outline;
     private String checkpoint;

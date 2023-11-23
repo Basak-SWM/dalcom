@@ -103,9 +103,11 @@ public class CoachingRequestService {
             .userProfile(userProfile)
             .coachProfile(coachProfile)
             .userMessage(dto.getUserMessage())
+            .presentationId(presentation.getId())
             .title(presentation.getTitle())
             .outline(presentation.getOutline())
             .checkpoint(presentation.getCheckpoint())
+            .speechId(speech.getId())
             .fullAudioUrl(speech.getFullAudioS3Url())
             .sttResult(stt)
             .build();

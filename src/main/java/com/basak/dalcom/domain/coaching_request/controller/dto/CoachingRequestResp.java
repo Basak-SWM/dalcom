@@ -27,13 +27,18 @@ public class CoachingRequestResp {
     private UUID coachUuid;
 
     // From Presentation
-    @Schema(description = "프레젠테이션 ID", type = "long", example = "1")
-    private String title;
+    @Schema(description = "프레젠테이션 ID", type = "integer", example = "1")
+    private Integer presentationId;
     @Schema(description = "프레젠테이션 제목", type = "string", example = "술 빨리 깨는 방법")
+    private String title;
+    @Schema(description = "프레젠테이션 개요", type = "string", example = "술 빨리 깨는 방법에 대한 설명")
     private String outline;
-    @Schema(description = "프레젠테이션 개요", type = "string", example = "약간 취해 보이는 것처럼")
+    @Schema(description = "잘 하고 싶은 점", type = "string", example = "약간 취해 보이는 것처럼")
     private String checkpoint;
 
+
+    @Schema(description = "스피치 ID", type = "integer", example = "2")
+    private Integer speechId;
     // From Speech
     @Schema(description = "음성이 저장된 url", type = "URL", example = "https://dalcom.s3.ap-northeast-2.amazonaws.com/audios/1.wav")
     private URL fullAudioUrl;
@@ -54,9 +59,11 @@ public class CoachingRequestResp {
             entity.getStatus(),
             UUID.fromString(entity.getUserProfile().getAccount().getUuid()),
             UUID.fromString(entity.getCoachProfile().getAccount().getUuid()),
+            entity.getPresentationId(),
             entity.getTitle(),
             entity.getOutline(),
             entity.getCheckpoint(),
+            entity.getSpeechId(),
             new URL(entity.getFullAudioUrl()),
             entity.getSttResult(),
             entity.getCoachMessage(),
